@@ -1,0 +1,32 @@
+A die that you tap on the table to "roll".
+
+Features:
+
+- Generates a random number and shows that on the display.
+
+- Can operate in several "die modes" - D4, D6, D8, D10, D12, D20 and D100.
+
+- Automatically sleeps when not being used, in the lowest possible power mode
+  for the microcontroller.  Hence it does not need a switch.
+
+You can do several things with the die by tapping it on a hard surface.
+
+- If it's off, one tap turns it on.  It shows you the current maximum number
+  it's set for.  If it's set as a D4, it will show '4'.  D6 - '6'.  D10 - '10'.
+  D12 - '12'.  D20 - '20'.  D100 - '00'.  This flashes twice at full
+  brightness, then flashes slowly at reduced brightness for a few seconds.  For
+  both flashing periods, both the decimal points also flash so you know it's
+  telling you the die mode.
+
+- If it's on a single tap makes it generate a new random throw, and show that.
+  Only the right most decimal point will show.  After a few seconds, the number
+  will fade from view, and flash slowly.  After a few more seconds the display
+  will turn off and the die will go to sleep.
+
+- If it's on, a double tap will change the die mode, and show you the new one.
+
+- If it's on, a triple tap will enable or disable the speaker.  If enabled, the
+  speaker will beep once when the die is "rolled".
+
+Russell Steicke <russells@adelie.cx>
+

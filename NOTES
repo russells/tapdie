@@ -1,0 +1,31 @@
+Random notes.
+
+- Power from a 3V CR2032 Lithium cell.
+
+- Use the ATtiny84/V or ATtiny84A.  Both will work down to 1.8V at up to 4MHz.
+
+- The default 1Hz internal clock should be more than sufficient, and there's no
+  need for great timing accuracy.
+
+- Power down current for those MCUs is less than 1uA.
+
+- When in power down mode, turn off all the peripherals.  Wake only on a pin
+  change interrupt.  I have confirmed that this uses very little current, with
+  the cat toy project.
+
+- Display will be two 7 segment LED displays.  That needs 10 pins - seven
+  segments plus the decimal point, plus two display select pins.
+
+- The display can be multiplexed with a timer interrupt, and the display
+  brightness can be changed in the interrupt using PWM mode (change the OCRnx
+  value in the interrupt).
+
+- The display select pins will need buffer transistors, partly to avoid the
+  maximum source/sink current, and partly to prevent the display brightness
+  varying depending on the number of segments lit.
+
+- Add in the pin needed for the piezo (for both knock detection and beeping)
+  and that just leaves the reset pin vacant.  Not a pin to spare!
+
+- Try to fit in the smallest ABS case with a clear lid, for example the
+  Altronics H0320 (65x60x40mm.)

@@ -1,0 +1,14 @@
+# QP-nano source directories.
+/qp-nano
+
+# Intermediate output files.
+/tapdie.map
+/tapdie.elf
+/tapdie.bin
+/*.d
+/*.o
+
+# Program file.
+/tapdie.hex
+
+/doc

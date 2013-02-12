@@ -3,9 +3,12 @@ Pin assignments.
 Subject to change depending on the final PCB layout.  With point to point
 wiring it won't matter.
 
+The display select lines are active high as they drive the common cathode
+LEDs via a common emitter transistor.
+
 1	Vcc
-2	PB0		Left LED display select (active low)
-3	PB1		Right LED display select (active low)
+2	PB0		Left LED display select (active high)
+3	PB1		Right LED display select (active high)
 4	/RESET
 5	PB2		Piezo input
 6	PA7		DP (active high)

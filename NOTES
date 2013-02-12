@@ -9,7 +9,7 @@ wiring it won't matter.
 4	/RESET
 5	PB2		Piezo input
 6	PA7		DP (active high)
-7	PA6		g segment
+7	PA6		g segment (all active high)
 8	PA5		f segment
 9	PA4		e segment
 10	PA3		d segment

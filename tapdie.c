@@ -15,6 +15,7 @@ Q_DEFINE_THIS_FILE;
 
 static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);
+static QState deepSleepState       (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -49,7 +50,7 @@ void tapdie_ctor(void)
 
 static QState tapdieInitial(struct Tapdie *me)
 {
-	return Q_TRAN(&tapdieState);
+	return Q_TRAN(&deepSleepState);
 }
 
 
@@ -61,4 +62,15 @@ static QState tapdieState(struct Tapdie *me)
 		return Q_HANDLED();
 	}
 	return Q_SUPER(&QHsm_top);
+}
+
+
+static QState deepSleepState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		BSP_deep_sleep();
+		return Q_HANDLED();
+	}
+	return Q_SUPER(tapdieState);
 }

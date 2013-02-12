@@ -41,6 +41,7 @@
 void BSP_watchdog(void);
 void BSP_startmain();		/* Code to put right at the start of main() */
 void BSP_init(void);
+void BSP_deep_sleep(void);	/* Do nothing - wait for a knock. */
 
 void BSP_enable_morse_line(void);
 void BSP_morse_signal(uint8_t onoff);

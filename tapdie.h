@@ -10,6 +10,7 @@ enum TapdieSignals {
 	 * running.
 	 */
 	WATCHDOG_SIGNAL = Q_USER_SIG,
+	TAP_SIGNAL,
 	MAX_PUB_SIG,
 	MAX_SIG,
 };
@@ -26,6 +27,9 @@ void tapdie_ctor(void);
 struct Tapdie {
 	QActive super;
 };
+
+
+extern struct Tapdie tapdie;
 
 
 /**

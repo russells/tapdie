@@ -29,16 +29,23 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 }
 
 
+static void start_watchdog(void)
+{
+	wdt_reset();
+	wdt_enable(WDTO_30MS);
+	SB(WDTCSR, WDIE);
+}
+
+
 void BSP_watchdog(void)
 {
-
+	start_watchdog();
 }
 
 
 SIGNAL(WDT_vect)
 {
 	postISR(&tapdie, WATCHDOG_SIGNAL);
-	SB(WDTCSR, WDIE);
 }
 
 
@@ -63,6 +70,7 @@ void BSP_init(void)
 	TCCR0B =(0 << WGM02) |
 		(0b010 << CS00); /* CLKio/8 */
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
+	start_watchdog();
 }
 
 
@@ -97,6 +105,7 @@ void BSP_deep_sleep(void)
 
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
+	start_watchdog();
 }
 
 

@@ -1,6 +1,8 @@
 #ifndef displays_h_INCLUDED
 #define displays_h_INCLUDED
 
+#include "inttypes.h"
+
 struct SevenSegmentDisplay {
 	char digit;		/* The digit we're displaying. Bit 7 is DP. */
 	uint8_t segments;	/* Individual segments, including the DP. */

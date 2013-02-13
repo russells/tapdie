@@ -1,0 +1,106 @@
+v 20110115 2
+B 0 200 3900 2200 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+{
+T 500 3400 5 10 0 0 0 0 1
+footprint=DIP8
+}
+P 1000 0 1000 200 1 0 0
+{
+T 1000 0 5 10 0 0 0 0 1
+pintype=pwr
+T 1345 400 5 8 1 1 180 0 1
+pinlabel=GND
+T 795 150 5 8 1 1 180 6 1
+pinnumber=4
+T 1000 0 5 10 0 0 0 0 1
+pinseq=4
+}
+P 1000 2600 1000 2400 1 0 0
+{
+T 1000 2600 5 10 0 0 0 0 1
+pintype=pwr
+T 755 2300 5 8 1 1 180 6 1
+pinlabel=VCC
+T 905 2650 5 8 1 1 180 0 1
+pinnumber=8
+T 1000 2600 5 10 0 0 0 0 1
+pinseq=8
+}
+T 500 4000 8 10 0 0 0 0 1
+author=Russell Steicke <russells@adelie.cx>
+T 100 2500 8 10 1 1 0 0 1
+refdes=U?
+P 4100 2100 3900 2100 1 0 0
+{
+T 4100 2100 5 10 0 0 180 0 1
+pintype=io
+T 3845 2095 5 8 1 1 0 6 1
+pinlabel=(PCINT5/\_RESET\_/ADC0/dW) PB5
+T 3995 2145 5 8 1 1 0 0 1
+pinnumber=1
+T 4100 2100 5 10 0 0 180 0 1
+pinseq=1
+}
+P 4100 1800 3900 1800 1 0 0
+{
+T 4100 1800 5 10 0 0 180 0 1
+pintype=io
+T 3845 1795 5 8 1 1 0 6 1
+pinlabel=(PCINT3/XTAL1/CLKI/\_OC1B\_/ADC3) PB3
+T 3995 1845 5 8 1 1 0 0 1
+pinnumber=2
+T 4100 1800 5 10 0 0 180 0 1
+pinseq=2
+}
+P 4100 1500 3900 1500 1 0 0
+{
+T 4100 1500 5 10 0 0 180 0 1
+pintype=io
+T 3845 1495 5 8 1 1 0 6 1
+pinlabel=(PCINT4/XTAL2/CLKO/OC1B/ADC2) PB4
+T 3995 1545 5 8 1 1 0 0 1
+pinnumber=3
+T 4100 1500 5 10 0 0 180 0 1
+pinseq=3
+}
+P 4100 1200 3900 1200 1 0 0
+{
+T 4100 1200 5 10 0 0 180 0 1
+pintype=io
+T 3845 1195 5 8 1 1 0 6 1
+pinlabel=(MOSI/DI/SDA/AIN0/OC0A/\_OC1A\_/AREF/PCINT0) PB0
+T 3995 1245 5 8 1 1 0 0 1
+pinnumber=5
+T 4100 1200 5 10 0 0 180 0 1
+pinseq=5
+}
+P 4100 900 3900 900 1 0 0
+{
+T 4100 900 5 10 0 0 180 0 1
+pintype=io
+T 3845 895 5 8 1 1 0 6 1
+pinlabel=(MISO/DO/AIN1/OC0B/OC1A/PCINT1) PB1
+T 3995 945 5 8 1 1 0 0 1
+pinnumber=6
+T 4100 900 5 10 0 0 180 0 1
+pinseq=6
+}
+P 4100 600 3900 600 1 0 0
+{
+T 4100 600 5 10 0 0 180 0 1
+pintype=io
+T 3845 595 5 8 1 1 0 6 1
+pinlabel=(SCK/USCK/SCL/ADC1/T0/INT0/PCINT2) PB2
+T 3995 645 5 8 1 1 0 0 1
+pinnumber=7
+T 4100 600 5 10 0 0 180 0 1
+pinseq=7
+}
+T 500 3100 8 10 0 0 0 0 1
+device=ATTINY85V
+T 500 4300 8 10 0 0 0 0 1
+description=Atmel ATtiny85/V microcontroller
+T 500 3700 8 10 0 0 0 0 1
+numslots=1
+T 1500 2500 9 10 1 0 0 0 1
+ATtiny85/V

@@ -163,6 +163,7 @@ SIGNAL(TIM0_OVF_vect)
 		dnum = 1;
 	}
 	PORTA = displayp->segments;
+	OCR1A = displayp->brightness;
 	if (dnum) {
 		SB(PORTB, 1);
 	} else {

@@ -35,6 +35,13 @@ void BSP_watchdog(void)
 }
 
 
+SIGNAL(WDT_vect)
+{
+	postISR(&tapdie, WATCHDOG_SIGNAL);
+	SB(WDTCSR, WDIE);
+}
+
+
 void BSP_startmain(void)
 {
 
@@ -43,11 +50,12 @@ void BSP_startmain(void)
 
 void BSP_init(void)
 {
-	/* TODO: set up at least one timer, and perhaps the watchdog. */
 	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
 	PCMSK0 = 0;
 	CB(DDRB, 2);		/* Input on PB2, PCINT10. */
 	SB(GIMSK, PCIE0);
+
+	/* Timer 0 is used for PWM on the displays. */
 }
 
 

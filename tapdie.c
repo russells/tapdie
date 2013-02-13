@@ -5,6 +5,7 @@
 
 #include "tapdie.h"
 #include "bsp.h"
+#include "displays.h"
 
 
 /** The only active Tapdie. */
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
 {
  startmain:
 	BSP_startmain();
+	displays_init();
 	BSP_init(); /* initialize the Board Support Package */
 	tapdie_ctor();
 

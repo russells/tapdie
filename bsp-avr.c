@@ -1,6 +1,7 @@
 #include "bsp.h"
 #include "tapdie.h"
 #include "morse.h"
+#include "displays.h"
 #include <avr/wdt.h>
 
 
@@ -59,6 +60,10 @@ void BSP_init(void)
 void BSP_deep_sleep(void)
 {
 	/* TODO: make all the LED control lines into inputs. */
+
+	wdt_reset();
+	wdt_disable();
+
 	/* TODO: when a timer is running, turn it off before cli(), then do a
 	   couple of NOP instructions to ensure we can process any possible
 	   pending timer interrupts before sleeping to ensure they don't wake
@@ -116,4 +121,27 @@ void BSP_stop_everything(void)
 	wdt_disable();
 	TCCR0B = 0;		/* Stop timer 0 */
 	TCCR1B = 0;		/* Stop timer 1 */
+}
+
+
+SIGNAL(TIM0_OVF_vect)
+{
+	static uint8_t dnum;
+	struct SevenSegmentDisplay *displayp;
+
+	CB(PORTB, 0);
+	CB(PORTB, 1);
+	if (dnum) {
+		displayp = displays;
+		dnum = 0;
+	} else {
+		displayp = displays + 1;
+		dnum = 1;
+	}
+	PORTA = displayp->segments;
+	if (dnum) {
+		SB(PORTB, 1);
+	} else {
+		SB(PORTB, 0);
+	}
 }

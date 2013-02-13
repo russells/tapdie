@@ -55,6 +55,16 @@ void BSP_startmain(void)
 }
 
 
+const uint8_t tccr0a =
+	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
+	(0b00 << COM0B0) |    /* OC0B disconnected. */
+	(0b11 << WGM00);      /* Fast PWM. */
+
+const uint8_t tccr0b =
+	(0 << WGM02) |		/* Fast PWM. */
+	(0b010 << CS00);	/* CLKio/8 */
+
+
 void BSP_init(void)
 {
 	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
@@ -63,12 +73,8 @@ void BSP_init(void)
 	SB(GIMSK, PCIE0);
 
 	/* Timer 0 is used for PWM on the displays. */
-	TCCR0A =(0b10 << COM0A0) | /* Clear OC0A on compare match, set on
-				      BOTTOM. */
-		(0b00 << COM0B0) | /* OC0B disconnected. */
-		(0b11 << WGM00);   /* Fast PWM. */
-	TCCR0B =(0 << WGM02) |
-		(0b010 << CS00); /* CLKio/8 */
+	TCCR0A = tccr0a;
+	TCCR0B = tccr0b;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
 	start_watchdog();
 }
@@ -87,10 +93,10 @@ void BSP_deep_sleep(void)
 	wdt_reset();
 	wdt_disable();
 
-	/* TODO: when a timer is running, turn it off before cli(), then do a
-	   couple of NOP instructions to ensure we can process any possible
-	   pending timer interrupts before sleeping to ensure they don't wake
-	   us early. */
+	TCCR0B = 0;	   /* Stop the timer, CS[2:0]=000. */
+	/* Ensure we handle any pending timer0 interrupt. */
+	__asm__ __volatile__ ("nop" "\n\t" :: );
+
 	cli();
 	PRR = 0b00001111;	/* All peripherals off. */
 
@@ -106,6 +112,7 @@ void BSP_deep_sleep(void)
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
 	start_watchdog();
+	TCCR0B = tccr0b;	/* Start the timer again. */
 }
 
 

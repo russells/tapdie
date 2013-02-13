@@ -99,6 +99,9 @@ static QState numbersState(struct Tapdie *me)
 	case Q_TIMEOUT_SIG:
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
+	case Q_EXIT_SIG:
+		set_digits(' ', 127, ' ', 127);
+		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);
 }

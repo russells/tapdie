@@ -56,6 +56,13 @@ void BSP_init(void)
 	SB(GIMSK, PCIE0);
 
 	/* Timer 0 is used for PWM on the displays. */
+	TCCR0A =(0b10 << COM0A0) | /* Clear OC0A on compare match, set on
+				      BOTTOM. */
+		(0b00 << COM0B0) | /* OC0B disconnected. */
+		(0b11 << WGM00);   /* Fast PWM. */
+	TCCR0B =(0 << WGM02) |
+		(0b010 << CS00); /* CLKio/8 */
+	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
 }
 
 

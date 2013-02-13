@@ -23,6 +23,9 @@ static uint8_t segmentmap[] = {
 
 static uint8_t get_segmentmap(char ch)
 {
+	if (' ' == ch || '\0' == ch) {
+		return 0b00000000;
+	}
 	Q_ASSERT(ch >= '0');
 	Q_ASSERT(ch <= '9');
 	return segmentmap[ ch - '0' ];
@@ -42,7 +45,9 @@ void displays_init(void)
 
 void set_digit(uint8_t digit, char ch, uint8_t brightness)
 {
-	uint8_t segments = get_segmentmap(ch & 0x7f);
+	uint8_t segments;
+
+	segments = get_segmentmap(ch & 0x7f);
 	if (ch & 0x80) segments |= 0x80;
 	switch (digit) {
 	case 0:

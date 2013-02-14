@@ -46,7 +46,7 @@ void BSP_watchdog(void)
 SIGNAL(WDT_vect)
 {
 	postISR(&tapdie, WATCHDOG_SIGNAL);
-	QF_tickISR();
+	QF_tick();
 }
 
 

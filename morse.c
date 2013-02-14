@@ -6,7 +6,7 @@
 
 
 /** Milliseconds per Morse code element. */
-#define DIT_LENGTH 200
+#define DIT_LENGTH 150
 
 
 /**
@@ -160,13 +160,13 @@ static void send_morse_char(const Q_ROM struct MorseChar *mc)
 
 static void char_pause(void)
 {
-	BSP_delay_ms( DIT_LENGTH * 3 );
+	BSP_delay_ms( DIT_LENGTH * 6 );
 }
 
 
 static void word_pause(void)
 {
-	BSP_delay_ms( DIT_LENGTH * 7 );
+	BSP_delay_ms( DIT_LENGTH * 9 );
 }
 
 

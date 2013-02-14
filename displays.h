@@ -14,5 +14,6 @@ extern struct SevenSegmentDisplay displays[];
 void displays_init(void);
 void set_digit(uint8_t digitnum, char ch, uint8_t br);
 void set_digits(char ch1, uint8_t br1, char ch2, uint8_t br2);
+void set_brightness(uint8_t brightness);
 
 #endif

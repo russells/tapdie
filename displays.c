@@ -75,3 +75,10 @@ void set_digits(char ch0, uint8_t br0, char ch1, uint8_t br1)
 	set_digit(0, ch0, br0);
 	set_digit(1, ch1, br1);
 }
+
+
+void set_brightness(uint8_t brightness)
+{
+	displays[0].brightness = brightness;
+	displays[1].brightness = brightness;
+}

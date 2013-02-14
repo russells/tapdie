@@ -46,6 +46,7 @@ void BSP_watchdog(void)
 SIGNAL(WDT_vect)
 {
 	postISR(&tapdie, WATCHDOG_SIGNAL);
+	QF_tickISR();
 }
 
 
@@ -67,6 +68,14 @@ const uint8_t tccr0b =
 
 void BSP_init(void)
 {
+	cli();
+	PORTA = 0x00;		 /* Turn off all the LED outputs. */
+	DDRA = 0xff;
+	CB(PORTB, 0);
+	SB(DDRB, 0);
+	CB(PORTB, 1);
+	SB(DDRB, 1);
+
 	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
 	PCMSK0 = 0;
 	CB(DDRB, 2);		/* Input on PB2, PCINT10. */
@@ -77,6 +86,7 @@ void BSP_init(void)
 	TCCR0B = tccr0b;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
 	start_watchdog();
+	sei();
 }
 
 
@@ -170,7 +180,7 @@ SIGNAL(TIM0_OVF_vect)
 		dnum = 1;
 	}
 	PORTA = displayp->segments;
-	OCR1A = displayp->brightness;
+	OCR0A = displayp->brightness;
 	if (dnum) {
 		SB(PORTB, 1);
 	} else {

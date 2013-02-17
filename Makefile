@@ -73,7 +73,7 @@ clean:
 
 .PHONY: flash
 flash: $(HEXPROGRAM)
-	avrdude -p t84 -P $(AVR_PROGRAMMER_PORT) -c $(AVR_PROGRAMMER) -U flash:w:$(HEXPROGRAM)
+	avrdude -p t84 -i 10 -P $(AVR_PROGRAMMER_PORT) -c $(AVR_PROGRAMMER) -U flash:w:$(HEXPROGRAM)
 
 .PHONY: doc
 doc:

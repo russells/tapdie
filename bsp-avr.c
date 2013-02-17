@@ -58,7 +58,7 @@ void BSP_startmain(void)
 
 const uint8_t tccr0a =
 	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
-	(0b00 << COM0B0) |    /* OC0B disconnected. */
+	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
 	(0b11 << WGM00);      /* Fast PWM. */
 
 const uint8_t tccr0b =
@@ -76,10 +76,10 @@ void BSP_init(void)
 	CB(PORTB, 1);
 	SB(DDRB, 1);
 
-	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
 	PCMSK0 = 0;
 	CB(DDRB, 2);		/* Input on PB2, PCINT10. */
-	SB(GIMSK, PCIE0);
+	SB(GIMSK, PCIE1);
+	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
 
 	/* Timer 0 is used for PWM on the displays. */
 	TCCR0A = tccr0a;
@@ -98,8 +98,6 @@ void BSP_init(void)
  */
 void BSP_deep_sleep(void)
 {
-	/* TODO: make all the LED control lines into inputs. */
-
 	wdt_reset();
 	wdt_disable();
 
@@ -109,6 +107,9 @@ void BSP_deep_sleep(void)
 
 	cli();
 	PRR = 0b00001111;	/* All peripherals off. */
+
+	DDRA = 0b00000000;	/* All lines are inputs. */
+	DDRB = 0b00000000;
 
 	SB(MCUCR, SM1);		/* Power down sleep mode. */
 	CB(MCUCR, SM0);
@@ -121,8 +122,13 @@ void BSP_deep_sleep(void)
 
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
+	PRR = 0b00001011;	/* Timer 0 back on. */
 	start_watchdog();
 	TCCR0B = tccr0b;	/* Start the timer again. */
+
+	DDRA = 0xff; /* FIXME this isn't quite right, see NOTES. */
+	SB(DDRB, 0);
+	SB(DDRB, 1);
 }
 
 
@@ -136,7 +142,7 @@ SIGNAL(PCINT1_vect)
 
 #define MORSE_DDR DDRB
 #define MORSE_PORT PORTB
-#define MORSE_BIT 2
+#define MORSE_BIT 0
 
 
 void BSP_enable_morse_line(void)

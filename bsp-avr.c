@@ -65,27 +65,35 @@ const uint8_t tccr0b =
 	(0 << WGM02) |		/* Fast PWM. */
 	(0b010 << CS00);	/* CLKio/8 */
 
+const uint8_t ddra = 0xff;
+
+const uint8_t porta = 0x00;
+
+const uint8_t ddrb = 0b110;
+
+const uint8_t portb = 0x00;
+
 
 void BSP_init(void)
 {
 	cli();
-	PORTA = 0x00;		 /* Turn off all the LED outputs. */
-	DDRA = 0xff;
-	CB(PORTB, 0);
-	SB(DDRB, 0);
-	CB(PORTB, 1);
-	SB(DDRB, 1);
 
 	PCMSK0 = 0;
-	CB(DDRB, 2);		/* Input on PB2, PCINT10. */
+	CB(DDRB, 0);		/* Input on PB0, PCINT8. */
 	SB(GIMSK, PCIE1);
-	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
+	PCMSK1 = (1 << PCINT8); /* Pin change interrupt on PCINT8. */
 
 	/* Timer 0 is used for PWM on the displays. */
 	TCCR0A = tccr0a;
 	TCCR0B = tccr0b;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
 	start_watchdog();
+
+	PORTA = porta;		/* Turn off all the LED outputs. */
+	DDRA = ddra;
+	PORTB = portb;
+	DDRB = ddrb;
+
 	sei();
 }
 
@@ -126,9 +134,8 @@ void BSP_deep_sleep(void)
 	start_watchdog();
 	TCCR0B = tccr0b;	/* Start the timer again. */
 
-	DDRA = 0xff; /* FIXME this isn't quite right, see NOTES. */
-	SB(DDRB, 0);
-	SB(DDRB, 1);
+	DDRA = ddra;
+	DDRB = ddrb;
 }
 
 
@@ -175,21 +182,33 @@ SIGNAL(TIM0_OVF_vect)
 {
 	static uint8_t dnum;
 	struct SevenSegmentDisplay *displayp;
+	uint8_t segments;
 
-	CB(PORTB, 0);
-	CB(PORTB, 1);
-	if (dnum) {
+	if (0 == dnum) {
 		displayp = displays;
-		dnum = 0;
 	} else {
 		displayp = displays + 1;
-		dnum = 1;
 	}
-	PORTA = displayp->segments;
-	OCR0A = displayp->brightness;
-	if (dnum) {
+	segments = displayp->segments;
+	PORTA = segments & 0x7f;
+	if (segments & 0x80) {
 		SB(PORTB, 1);
 	} else {
-		SB(PORTB, 0);
+		CB(PORTB, 1);
+	}
+	OCR0A = displayp->brightness;
+	if (0 == dnum) {
+		CB(DDRA, 7);	/* Clear before set so we don't run both. */
+		SB(DDRB, 2);
+	} else {
+		CB(DDRB, 2);
+		SB(DDRA, 7);
+	}
+
+	/* Display the other one next time. */
+	if (0 == dnum) {
+		dnum = 1;
+	} else {
+		dnum = 0;
 	}
 }

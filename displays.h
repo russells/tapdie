@@ -5,7 +5,10 @@
 
 struct SevenSegmentDisplay {
 	char digit;		/* The digit we're displaying. Bit 7 is DP. */
-	uint8_t segments;	/* Individual segments, including the DP. */
+	uint8_t segments;	/* Individual segments.  MSB to LSB: DP, a, b,
+				   c, d, e, f, g.  Order may change due to PCB
+				   layout, but DP must stay at bit 7 as PA7 is
+				   used for OC0B. */
 	uint8_t brightness;	/* PWM brightness value, 0 - 255. */
 };
 

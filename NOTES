@@ -12,13 +12,13 @@ LEDs via a common emitter transistor.
 4	/RESET
 5	PB2,OC0A	Left LED display select (active high)
 6	PA7,OC0B	Right LED display select (active high)
-7	PA6		g segment (all active high)
-8	PA5		f segment
-9	PA4		e segment
+7	PA6		a segment (all active high)
+8	PA5		b segment
+9	PA4		c segment
 10	PA3		d segment
-11	PA2		c segment
-12	PA1		b segment
-13	Pa0		a segment
+11	PA2		e segment
+12	PA1		f segment
+13	PA0		g segment
 14	GND
 
 

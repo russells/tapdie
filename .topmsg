@@ -1,5 +1,5 @@
 From: Russell Steicke <russells@adelie.cx>
-Subject: Cycle some numbers on the LED, then sleep until tapped.
+Subject: Sleep until tapped, then cycle some numbers on the LED for a while.
 
 This is a demonstration of the LED display code, and a proof that the
 tap wakeup code works.

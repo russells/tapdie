@@ -56,22 +56,19 @@ void BSP_startmain(void)
 }
 
 
-const uint8_t tccr0a =
+const uint8_t tccr0a_init =
 	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
 	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
 	(0b11 << WGM00);      /* Fast PWM. */
 
-const uint8_t tccr0b =
+const uint8_t tccr0b_init =
 	(0 << WGM02) |		/* Fast PWM. */
 	(0b010 << CS00);	/* CLKio/8 */
 
-const uint8_t ddra = 0xff;
-
-const uint8_t porta = 0x00;
-
-const uint8_t ddrb = 0b110;
-
-const uint8_t portb = 0x00;
+const uint8_t ddra_init  = 0xff;
+const uint8_t porta_init = 0x00;
+const uint8_t ddrb_init  = 0b110; /* PB0 is always input. */
+const uint8_t portb_init = 0x00;
 
 
 void BSP_init(void)
@@ -84,15 +81,15 @@ void BSP_init(void)
 	PCMSK1 = (1 << PCINT8); /* Pin change interrupt on PCINT8. */
 
 	/* Timer 0 is used for PWM on the displays. */
-	TCCR0A = tccr0a;
-	TCCR0B = tccr0b;
+	TCCR0A = tccr0a_init;
+	TCCR0B = tccr0b_init;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
 	start_watchdog();
 
-	PORTA = porta;		/* Turn off all the LED outputs. */
-	DDRA = ddra;
-	PORTB = portb;
-	DDRB = ddrb;
+	PORTA = porta_init;	/* Turn off all the LED outputs. */
+	DDRA  = ddra_init;
+	PORTB = portb_init;
+	DDRB  = ddrb_init;
 
 	sei();
 }
@@ -132,10 +129,10 @@ void BSP_deep_sleep(void)
 	CB(MCUCR, SE);          /* Disable sleep mode. */
 	PRR = 0b00001011;	/* Timer 0 back on. */
 	start_watchdog();
-	TCCR0B = tccr0b;	/* Start the timer again. */
+	TCCR0B = tccr0b_init;	/* Start the timer again. */
 
-	DDRA = ddra;
-	DDRB = ddrb;
+	DDRA = ddra_init;
+	DDRB = ddrb_init;
 }
 
 
@@ -196,11 +193,12 @@ SIGNAL(TIM0_OVF_vect)
 	} else {
 		CB(PORTB, 1);
 	}
-	OCR0A = displayp->brightness;
 	if (0 == dnum) {
+		OCR0A = displayp->brightness;
 		CB(DDRA, 7);	/* Clear before set so we don't run both. */
 		SB(DDRB, 2);
 	} else {
+		OCR0B = displayp->brightness;
 		CB(DDRB, 2);
 		SB(DDRA, 7);
 	}

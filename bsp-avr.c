@@ -106,12 +106,11 @@ void BSP_deep_sleep(void)
 	wdt_reset();
 	wdt_disable();
 
-	TCCR0B = 0;	   /* Stop the timer, CS[2:0]=000. */
+	PRR = 0b00001111;	/* All peripherals off. */
+
 	/* Ensure we handle any pending timer0 interrupt. */
 	__asm__ __volatile__ ("nop" "\n\t" :: );
-
 	cli();
-	PRR = 0b00001111;	/* All peripherals off. */
 
 	DDRA = 0b00000000;	/* All lines are inputs. */
 	DDRB = 0b00000000;
@@ -127,10 +126,9 @@ void BSP_deep_sleep(void)
 
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
-	PRR = 0b00001011;	/* Timer 0 back on. */
+	CB(PRR, 2);		/* Timer 0 back on. */
 	TCNT0 = 0;		/* Start counting from the beginning again. */
 	start_watchdog();
-	TCCR0B = tccr0b_init;	/* Start the timer again. */
 
 	DDRA = ddra_init;
 	DDRB = ddrb_init;

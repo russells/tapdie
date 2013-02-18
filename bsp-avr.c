@@ -128,6 +128,7 @@ void BSP_deep_sleep(void)
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
 	PRR = 0b00001011;	/* Timer 0 back on. */
+	TCNT0 = 0;		/* Start counting from the beginning again. */
 	start_watchdog();
 	TCCR0B = tccr0b_init;	/* Start the timer again. */
 

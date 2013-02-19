@@ -171,6 +171,7 @@ void BSP_stop_everything(void)
 	wdt_disable();
 	TCCR0B = 0;		/* Stop timer 0 */
 	TCCR1B = 0;		/* Stop timer 1 */
+	PRR = 0b00001111;
 }
 
 
@@ -202,10 +203,5 @@ SIGNAL(TIM0_OVF_vect)
 		SB(DDRA, 7);
 	}
 
-	/* Display the other one next time. */
-	if (0 == dnum) {
-		dnum = 1;
-	} else {
-		dnum = 0;
-	}
+	dnum = ! dnum;		/* Other display next time. */
 }

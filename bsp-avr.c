@@ -181,6 +181,9 @@ SIGNAL(TIM0_OVF_vect)
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
 
+	CB(DDRA, 7);		/* Clear before set so we don't run both. */
+	CB(DDRB, 2);
+
 	if (0 == dnum) {
 		displayp = displays;
 	} else {
@@ -195,11 +198,9 @@ SIGNAL(TIM0_OVF_vect)
 	}
 	if (0 == dnum) {
 		OCR0A = displayp->brightness;
-		CB(DDRA, 7);	/* Clear before set so we don't run both. */
 		SB(DDRB, 2);
 	} else {
 		OCR0B = displayp->brightness;
-		CB(DDRB, 2);
 		SB(DDRA, 7);
 	}
 

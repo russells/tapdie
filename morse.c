@@ -223,7 +223,9 @@ void morse_assert(char const Q_ROM * const Q_ROM_VAR str, int num)
 		}
 	}
 
-	while (1) {
+	/* Display the assertion message a limited number of times to avoid
+	   completely draining the battery. */
+	for (uint8_t loops=0; loops < 10; loops++) {
 		word_pause();
 		for (i=0; /*EMPTY*/ ; i++) {
 			c = Q_ROM_BYTE(str[i]);

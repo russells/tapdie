@@ -8,11 +8,11 @@ LEDs via a common emitter transistor.
 
 1	Vcc
 2	PB0		Piezo input.
-3	PB1		DP (active high)
+3	PB1		DP
 4	/RESET
-5	PB2,OC0A	Left LED display select (active high)
-6	PA7,OC0B	Right LED display select (active high)
-7	PA6		a segment (all active high)
+5	PB2,OC0A	Left LED display select
+6	PA7,OC0B	Right LED display select
+7	PA6		a segment
 8	PA5		b segment
 9	PA4		c segment
 10	PA3		d segment

@@ -2,7 +2,7 @@
 #include "tapdie.h"
 #include "morse.h"
 #include <avr/wdt.h>
-
+#include "common-diode.h"
 
 Q_DEFINE_THIS_FILE;
 

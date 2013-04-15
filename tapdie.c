@@ -54,7 +54,7 @@ void tapdie_ctor(void)
 
 static QState tapdieInitial(struct Tapdie *me)
 {
-	return Q_TRAN(&numbersState);
+	return Q_TRAN(&deepSleepState);
 }
 
 
@@ -87,6 +87,7 @@ static QState numbersState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->digit = '0';
+		me->counter = 0;
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:

@@ -12,6 +12,8 @@ struct SevenSegmentDisplay displays[2];
  * @todo Make this sensitive to a COMMON_ANODE or COMMON_CATHODE setting.
  * Perhaps define a macro to go before each constant that will be empty for one
  * and invert the constant value for the other.
+ *
+ * @todo Put this in program memory.
  */
 static uint8_t segmentmap[] = {
 	0b00111111,		/* '0' */
@@ -24,17 +26,6 @@ static uint8_t segmentmap[] = {
 	0b00000111,		/* '7' */
 	0b01111111,		/* '8' */
 	0b01101111,		/* '9' */
-
-	/*0b01111111,*/		/* '0' */
-	/*0b01000000,*/		/* '1' */
-	/*0b00100000,*/		/* '2' */
-	/*0b00010000,*/		/* '3' */
-	/*0b00001000,*/		/* '4' */
-	/*0b00000100,*/		/* '5' */
-	/*0b00000010,*/		/* '6' */
-	/*0b00000001,*/		/* '7' */
-	/*0b01010101,*/		/* '8' */
-	/*0b00000000,*/		/* '9' */
 };
 
 static uint8_t get_segmentmap(char ch)

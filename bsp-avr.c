@@ -175,6 +175,13 @@ void BSP_stop_everything(void)
 }
 
 
+/**
+ * @todo: Change this to display only one segment at a time.  Currently we
+ * display all the segments of a digit at once.  This will result in varying
+ * brightness of different digits because we only have one series resistor (op
+ * the common pin) and because we have a very limited current supply (one
+ * CR2032 battery.)
+ */
 SIGNAL(TIM0_OVF_vect)
 {
 	static uint8_t dnum;

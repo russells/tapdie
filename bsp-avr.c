@@ -59,7 +59,7 @@ void BSP_startmain(void)
 
 /**
  * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.  The polarity
- * of the OCRA and OCRB pins will need to change (hence then COM0An and COM0Bn
+ * of the OCRA and OCRB pins will need to change (hence the COM0An and COM0Bn
  * bits.)
  */
 const uint8_t tccr0a_init =

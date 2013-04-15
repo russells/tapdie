@@ -213,6 +213,10 @@ SIGNAL(TIM0_OVF_vect)
 	} else {
 		CB(PORTB, 1);
 	}
+	/**
+	 * @todo Make the brightness values make sense.  This will involve
+	 * inverting the value for one of common anode or common cathode.
+	 */
 	if (0 == dnum) {
 		OCR0A = displayp->brightness;
 		SB(DDRB, 2);

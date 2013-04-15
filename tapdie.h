@@ -11,6 +11,7 @@ enum TapdieSignals {
 	 */
 	WATCHDOG_SIGNAL = Q_USER_SIG,
 	TAP_SIGNAL,
+	NEXT_DIGIT_SIGNAL,
 	MAX_PUB_SIG,
 	MAX_SIG,
 };
@@ -26,6 +27,8 @@ void tapdie_ctor(void);
  */
 struct Tapdie {
 	QActive super;
+	char digit;
+	uint8_t counter;
 };
 
 

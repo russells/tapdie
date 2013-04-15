@@ -56,6 +56,12 @@ void BSP_startmain(void)
 }
 
 
+
+/**
+ * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.  The polarity
+ * of the OCRA and OCRB pins will need to change (hence then COM0An and COM0Bn
+ * bits.)
+ */
 const uint8_t tccr0a_init =
 	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
 	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
@@ -198,6 +204,10 @@ SIGNAL(TIM0_OVF_vect)
 	}
 	segments = displayp->segments;
 	PORTA = segments & 0x7f;
+
+	/**
+	 * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.
+	 */
 	if (segments & 0x80) {
 		SB(PORTB, 1);
 	} else {

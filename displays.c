@@ -8,6 +8,11 @@ Q_DEFINE_THIS_FILE;
 struct SevenSegmentDisplay displays[2];
 
 
+/**
+ * @todo Make this sensitive to a COMMON_ANODE or COMMON_CATHODE setting.
+ * Perhaps define a macro to go before each constant that will be empty for one
+ * and invert the constant value for the other.
+ */
 static uint8_t segmentmap[] = {
 	0b01111110,		/* '0' */
 	0b00110000,		/* '1' */

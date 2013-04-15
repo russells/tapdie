@@ -48,12 +48,13 @@ int main(int argc, char **argv)
 void tapdie_ctor(void)
 {
 	QActive_ctor((QActive *)(&tapdie), (QStateHandler)&tapdieInitial);
+	tapdie.counter = 0;
 }
 
 
 static QState tapdieInitial(struct Tapdie *me)
 {
-	return Q_TRAN(&deepSleepState);
+	return Q_TRAN(&numbersState);
 }
 
 
@@ -85,16 +86,22 @@ static QState numbersState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		me->digit = '0'-1;
+		me->digit = '0';
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
+		if (me->counter >= 10)
+			return Q_TRAN(deepSleepState);
+		if (me->counter & 0b1)
+			set_digits(me->digit | 0x80, 127, me->digit | 0x80, 127);
+		else
+			set_digits(me->digit, 127, me->digit, 127);
+		QActive_arm((QActive*)me, 20);
 		me->digit ++;
 		if (me->digit > '9') {
-			return Q_TRAN(deepSleepState);
+			me->digit = '0';
+			me->counter ++;
 		}
-		set_digits(me->digit, 127, me->digit, 127);
-		QActive_arm((QActive*)me, 20);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
 		post(me, NEXT_DIGIT_SIGNAL);

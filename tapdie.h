@@ -28,6 +28,7 @@ void tapdie_ctor(void);
 struct Tapdie {
 	QActive super;
 	char digit;
+	uint8_t counter;
 };
 
 

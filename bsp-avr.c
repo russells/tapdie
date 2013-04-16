@@ -143,7 +143,12 @@ void BSP_deep_sleep(void)
 
 SIGNAL(PCINT1_vect)
 {
-	/* TODO: when there is a timer available, use that to ensure we don't
+	/* If the event queue already has more than one event being processed
+	   and one waiting, don't put any more in. */
+	if (nEventsUsed((QActive*)(&tapdie)) >= 2)
+		return;
+
+	/* @todo When there is a timer available, use that to ensure we don't
 	   send too many TAP_SIGNALs one after the other. */
 	post(&tapdie, TAP_SIGNAL);
 }

@@ -1,7 +1,6 @@
 #include "bsp.h"
 #include "tapdie.h"
 #include "morse.h"
-#include "displays.h"
 #include <avr/wdt.h>
 
 
@@ -29,24 +28,9 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 }
 
 
-static void start_watchdog(void)
-{
-	wdt_reset();
-	wdt_enable(WDTO_30MS);
-	SB(WDTCSR, WDIE);
-}
-
-
 void BSP_watchdog(void)
 {
-	start_watchdog();
-}
 
-
-SIGNAL(WDT_vect)
-{
-	postISR(&tapdie, WATCHDOG_SIGNAL);
-	QF_tick();
 }
 
 
@@ -56,42 +40,13 @@ void BSP_startmain(void)
 }
 
 
-const uint8_t tccr0a_init =
-	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
-	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
-	(0b11 << WGM00);      /* Fast PWM. */
-
-const uint8_t tccr0b_init =
-	(0 << WGM02) |		/* Fast PWM. */
-	(0b010 << CS00);	/* CLKio/8 */
-
-const uint8_t ddra_init  = 0xff;
-const uint8_t porta_init = 0x00;
-const uint8_t ddrb_init  = 0b110; /* PB0 is always input. */
-const uint8_t portb_init = 0x00;
-
-
 void BSP_init(void)
 {
-	cli();
-
+	/* TODO: set up at least one timer, and perhaps the watchdog. */
+	PCMSK1 = (1 << PCINT10); /* Pin change interrupt on PCINT10. */
 	PCMSK0 = 0;
-	CB(DDRB, 0);		/* Input on PB0, PCINT8. */
-	SB(GIMSK, PCIE1);
-	PCMSK1 = (1 << PCINT8); /* Pin change interrupt on PCINT8. */
-
-	/* Timer 0 is used for PWM on the displays. */
-	TCCR0A = tccr0a_init;
-	TCCR0B = tccr0b_init;
-	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
-	start_watchdog();
-
-	PORTA = porta_init;	/* Turn off all the LED outputs. */
-	DDRA  = ddra_init;
-	PORTB = portb_init;
-	DDRB  = ddrb_init;
-
-	sei();
+	CB(DDRB, 2);		/* Input on PB2, PCINT10. */
+	SB(GIMSK, PCIE0);
 }
 
 
@@ -103,18 +58,13 @@ void BSP_init(void)
  */
 void BSP_deep_sleep(void)
 {
-	wdt_reset();
-	wdt_disable();
-
-	TCCR0B = 0;	   /* Stop the timer, CS[2:0]=000. */
-	/* Ensure we handle any pending timer0 interrupt. */
-	__asm__ __volatile__ ("nop" "\n\t" :: );
-
+	/* TODO: make all the LED control lines into inputs. */
+	/* TODO: when a timer is running, turn it off before cli(), then do a
+	   couple of NOP instructions to ensure we can process any possible
+	   pending timer interrupts before sleeping to ensure they don't wake
+	   us early. */
 	cli();
 	PRR = 0b00001111;	/* All peripherals off. */
-
-	DDRA = 0b00000000;	/* All lines are inputs. */
-	DDRB = 0b00000000;
 
 	SB(MCUCR, SM1);		/* Power down sleep mode. */
 	CB(MCUCR, SM0);
@@ -127,13 +77,6 @@ void BSP_deep_sleep(void)
 
 	/* Now we're awake again. */
 	CB(MCUCR, SE);          /* Disable sleep mode. */
-	PRR = 0b00001011;	/* Timer 0 back on. */
-	TCNT0 = 0;		/* Start counting from the beginning again. */
-	start_watchdog();
-	TCCR0B = tccr0b_init;	/* Start the timer again. */
-
-	DDRA = ddra_init;
-	DDRB = ddrb_init;
 }
 
 
@@ -147,7 +90,7 @@ SIGNAL(PCINT1_vect)
 
 #define MORSE_DDR DDRB
 #define MORSE_PORT PORTB
-#define MORSE_BIT 0
+#define MORSE_BIT 2
 
 
 void BSP_enable_morse_line(void)
@@ -173,41 +116,4 @@ void BSP_stop_everything(void)
 	wdt_disable();
 	TCCR0B = 0;		/* Stop timer 0 */
 	TCCR1B = 0;		/* Stop timer 1 */
-}
-
-
-SIGNAL(TIM0_OVF_vect)
-{
-	static uint8_t dnum;
-	struct SevenSegmentDisplay *displayp;
-	uint8_t segments;
-
-	if (0 == dnum) {
-		displayp = displays;
-	} else {
-		displayp = displays + 1;
-	}
-	segments = displayp->segments;
-	PORTA = segments & 0x7f;
-	if (segments & 0x80) {
-		SB(PORTB, 1);
-	} else {
-		CB(PORTB, 1);
-	}
-	if (0 == dnum) {
-		OCR0A = displayp->brightness;
-		CB(DDRA, 7);	/* Clear before set so we don't run both. */
-		SB(DDRB, 2);
-	} else {
-		OCR0B = displayp->brightness;
-		CB(DDRB, 2);
-		SB(DDRA, 7);
-	}
-
-	/* Display the other one next time. */
-	if (0 == dnum) {
-		dnum = 1;
-	} else {
-		dnum = 0;
-	}
 }

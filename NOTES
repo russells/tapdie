@@ -3,34 +3,28 @@ Pin assignments.
 Subject to change depending on the final PCB layout.  With point to point
 wiring it won't matter.
 
-The display select lines can be active high or active low.  We select that
-at compile time.  The segment lines will of course have the opposite
-polarity.  The lines are driven direct from the microcontroller's output
-port pins.
+The display select lines are active high as they drive the common cathode
+LEDs via a common emitter transistor.
 
 1	Vcc
-2	PB0		Piezo input
-3	PB1		DP segment
+2	PB0		Piezo input.
+3	PB1		DP
 4	/RESET
-5	PB2 (OC0A)	Left LED display select
-6	PA7 (OC0B)	Right LED display select
-7	PA6		g segment
-8	PA5		f segment
-9	PA4		e segment
+5	PB2,OC0A	Left LED display select
+6	PA7,OC0B	Right LED display select
+7	PA6		a segment
+8	PA5		b segment
+9	PA4		c segment
 10	PA3		d segment
-11	PA2		c segment
-12	PA1		b segment
-13	Pa0		a segment
+11	PA2		e segment
+12	PA1		f segment
+13	PA0		g segment
 14	GND
 
 
 Random notes.
 
 - Power from a 3V CR2032 Lithium cell.
-
-- Since power is limited to 3mA, we should only power one segment at a
-  time.  Hence, we need to multiplex the segments, even though we can drive
-  them all at once.
 
 - Use the ATtiny84/V or ATtiny84A.  Both will work down to 1.8V at up to 4MHz.
 

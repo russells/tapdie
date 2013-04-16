@@ -57,22 +57,17 @@ void BSP_startmain(void)
 
 
 #ifdef COMMON_ANODE
-#define COM0xn 0b10
+#define COM0xn 0b10	      /* Clear OC0A on compare match, set on BOTTOM. */
 #else
 #ifdef COMMON_CATHODE
-#define COM0xn 0b11
+#define COM0xn 0b11	      /* Set OC0B on compare match, clear on BOTTOM. */
 #endif
 #endif
 
 
-/**
- * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.  The polarity
- * of the OCRA and OCRB pins will need to change (hence the COM0An and COM0Bn
- * bits.)
- */
 const uint8_t tccr0a_init =
-	(COM0xn << COM0A0) |	/* Clear OC0A on compare match, set on BOTTOM. */
-	(COM0xn << COM0B0) |	/* Clear OC0B on compare match, set on BOTTOM. */
+	(COM0xn << COM0A0) |
+	(COM0xn << COM0B0) |
 	(0b11 << WGM00);	/* Fast PWM. */
 
 const uint8_t tccr0b_init =

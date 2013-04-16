@@ -56,6 +56,14 @@ void BSP_startmain(void)
 }
 
 
+#ifdef COMMON_ANODE
+#define COM0xn 0b10
+#else
+#ifdef COMMON_CATHODE
+#define COM0xn 0b11
+#endif
+#endif
+
 
 /**
  * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.  The polarity
@@ -63,9 +71,9 @@ void BSP_startmain(void)
  * bits.)
  */
 const uint8_t tccr0a_init =
-	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
-	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
-	(0b11 << WGM00);      /* Fast PWM. */
+	(COM0xn << COM0A0) |	/* Clear OC0A on compare match, set on BOTTOM. */
+	(COM0xn << COM0B0) |	/* Clear OC0B on compare match, set on BOTTOM. */
+	(0b11 << WGM00);	/* Fast PWM. */
 
 const uint8_t tccr0b_init =
 	(0 << WGM02) |		/* Fast PWM. */

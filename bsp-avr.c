@@ -29,6 +29,21 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 }
 
 
+/**
+ * Reset the watchdog timer very early in the startup sequence.  If we try to
+ * do this from the beginning of main(), it often takes too long to get there
+ * due to the data segment initialisation code, and we end up in a reset loop.
+ */
+void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+void wdt_init(void)
+{
+    MCUSR = 0;
+    wdt_disable();
+
+    return;
+}
+
+
 static void start_watchdog(void)
 {
 	wdt_reset();
@@ -50,9 +65,50 @@ SIGNAL(WDT_vect)
 }
 
 
+#ifdef COMMON_CATHODE
+#define DPSTART() do { SB(DDRB, 1); SB(DDRB, 2); } while (0)
+#define DPON()    do { SB(PORTB, 1); CB(PORTB, 2); } while (0)
+#define DPOFF()   do { CB(PORTB, 1); } while (0)
+#define DPSTOP()  do { DDRB = 0; PORTB = 0; } while (0)
+
+#else
+
+#ifdef COMMON_ANODE
+#define DPSTART() do { SB(DDRB, 1); SB(DDRB, 2); } while (0)
+#define DPON()    do { CB(PORTB, 1); SB(PORTB, 2); } while (0)
+#define DPOFF()   do { SB(PORTB, 1); } while (0)
+#define DPSTOP()  do { DDRB = 0; PORTB = 0; } while (0)
+#endif
+#endif
+
+
 void BSP_startmain(void)
 {
+	uint8_t prr;
+	uint8_t sreg;
 
+	wdt_disable();
+	sreg = SREG;
+	cli();
+	prr = PRR;
+	PRR = 0xf;
+
+	DPSTART();
+	DPON();
+	_delay_ms(100);
+	DPOFF();
+	_delay_ms(200);
+	DPON();
+	_delay_ms(100);
+	DPOFF();
+	_delay_ms(200);
+	DPON();
+	_delay_ms(100);
+	DPOFF();
+	DPSTOP();
+
+	PRR = prr;
+	SREG = sreg;
 }
 
 
@@ -200,6 +256,31 @@ void BSP_stop_everything(void)
 	PRR = 0b00001111;
 	DDRA = 0;
 	DDRB = 0;
+}
+
+
+/**
+ * Force a chip reset.  We do this by enabling the watchdog, then disabling
+ * interrupts and waiting.  But first, there's a long flash on one decimal
+ * point segment.
+ */
+void BSP_do_reset(void)
+{
+	cli();
+	wdt_disable();
+
+	/* */
+	DPSTART();
+	_delay_ms(250);
+	DPON();
+	_delay_ms(1000);
+	DPOFF();
+	_delay_ms(500);
+	DPSTOP();
+
+	wdt_enable(WDTO_15MS);
+	while (1)
+		;
 }
 
 

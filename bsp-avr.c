@@ -37,7 +37,7 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
 void wdt_init(void)
 {
-    wdt_disable();
+	wdt_disable();
 }
 
 

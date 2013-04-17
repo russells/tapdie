@@ -211,11 +211,23 @@ SIGNAL(TIM0_OVF_vect)
 	/**
 	 * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.
 	 */
+#ifdef COMMON_CATHODE
 	if (segments & 0x80) {
 		SB(PORTB, 1);
 	} else {
 		CB(PORTB, 1);
 	}
+#else
+#ifdef COMMON_ANODE
+	if (segments & 0x80) {
+		CB(PORTB, 1);
+	} else {
+		SB(PORTB, 1);
+	}
+#else
+#error Must define COMMON_ANODE or COMMON_CATHODE
+#endif
+#endif
 	/**
 	 * @todo Make the brightness values make sense.  This will involve
 	 * inverting the value for one of common anode or common cathode.

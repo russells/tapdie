@@ -160,13 +160,13 @@ static void send_morse_char(const Q_ROM struct MorseChar *mc)
 
 static void char_pause(void)
 {
-	BSP_delay_ms( DIT_LENGTH * 6 );
+	BSP_delay_ms( DIT_LENGTH * 3 );
 }
 
 
 static void word_pause(void)
 {
-	BSP_delay_ms( DIT_LENGTH * 9 );
+	BSP_delay_ms( DIT_LENGTH * 7 );
 }
 
 

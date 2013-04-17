@@ -6,7 +6,7 @@
 
 
 /** Milliseconds per Morse code element. */
-#define DIT_LENGTH 150
+#define DIT_LENGTH 200
 
 
 /**

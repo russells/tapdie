@@ -1,4 +1,16 @@
 From: Russell Steicke <russells@adelie.cx>
 Subject: Don't run the morse assertions forever, to save the battery.
 
+- We run the morse code display for a limited number of times, then
+  force a reset.
+
+And some other changes:
+
+- Disable the watchdog timer early in the startup sequence, with a function
+  that is put in the ".init3" section by the linker.
+
+- Flash a decimal point at startup, and also just before a forced reset.
+
+- Display the reset reason from MCUSR in decimal point flashes.
+
 Signed-off-by: Russell Steicke <russells@adelie.cx>

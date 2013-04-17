@@ -1,8 +1,0 @@
-From: Russell Steicke <russells@adelie.cx>
-Subject: Limit the rate at which we generate TAP_SIGNALs.
-
-If we allow these to be generated too often, we very quickly fill up
-the tapdie's event queue and generate an assertion.  So don't generate
-another one if the queue is too full.
-
-Signed-off-by: Russell Steicke <russells@adelie.cx>

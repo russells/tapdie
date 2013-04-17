@@ -23,6 +23,14 @@ BINPROGRAM = $(APPNAME).bin
 AVR_PROGRAMMER = stk500v2
 AVR_PROGRAMMER_PORT = /dev/ttyACM0
 
+ifdef COMMON_ANODE
+COMMON_DIODE_FLAG = -DCOMMON_ANODE
+else
+ifdef COMMON_CATHODE
+COMMON_DIODE_FLAG = -DCOMMON_CATHODE
+endif
+endif
+
 QPN_INCDIR = qp-nano/include
 QP_LIBDIR = $(QP_PRTDIR)/$(BINDIR)
 QP_SRCDIR = qp-nano/source
@@ -33,7 +41,8 @@ TARGET_MCU = attiny84
 CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	-Wno-attributes \
 	-mmcu=$(TARGET_MCU) -Wall -Werror -o$@ \
-	-I$(QPN_INCDIR) -I.
+	-I$(QPN_INCDIR) -I. \
+	$(COMMON_DIODE_FLAG)
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(TARGET_MCU)
 
 SRCS = tapdie.c bsp-avr.c qepn.c qfn.c morse.c displays.c

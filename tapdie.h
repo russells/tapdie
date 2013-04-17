@@ -65,5 +65,14 @@ extern struct Tapdie tapdie;
 		QActive_postISR(_me, sig);				\
 	} while (0)
 
+/**
+ * Find out how many events are in the queue.  According to the QP-nano source,
+ * this count potentially includes one currently being processed by the state
+ * machine.
+ */
+static inline uint8_t nEventsUsed(QActive *o)
+{
+	return o->nUsed;
+}
 
 #endif

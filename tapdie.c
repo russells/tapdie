@@ -91,13 +91,13 @@ static QState numbersState(struct Tapdie *me)
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 2)
+		if (me->counter >= 10)
 			return Q_TRAN(deepSleepState);
 		if (me->counter & 0b1)
 			set_digits(me->digit | 0x80, 127, me->digit | 0x80, 127);
 		else
 			set_digits(me->digit, 127, me->digit, 127);
-		QActive_arm((QActive*)me, 2);
+		QActive_arm((QActive*)me, 20);
 		me->digit ++;
 		if (me->digit > '9') {
 			me->digit = '0';

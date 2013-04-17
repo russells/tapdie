@@ -23,7 +23,7 @@ struct SevenSegmentDisplay displays[2];
  *
  * @todo Put this in program memory.
  */
-static uint8_t segmentmap[] = {
+static const Q_ROM uint8_t segmentmap[] = {
 	DISPLAYSEGMENTS( 0b00111111 ), /* '0' */
 	DISPLAYSEGMENTS( 0b00000110 ), /* '1' */
 	DISPLAYSEGMENTS( 0b01011011 ), /* '2' */
@@ -43,7 +43,7 @@ static uint8_t get_segmentmap(char ch)
 	}
 	Q_ASSERT(ch >= '0');
 	Q_ASSERT(ch <= '9');
-	return segmentmap[ ch - '0' ];
+	return Q_ROM_BYTE(segmentmap[ ch - '0' ]);
 }
 
 

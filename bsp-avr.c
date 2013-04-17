@@ -3,7 +3,7 @@
 #include "morse.h"
 #include "displays.h"
 #include <avr/wdt.h>
-#include "common-diode.h"
+
 
 Q_DEFINE_THIS_FILE;
 

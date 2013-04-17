@@ -1,5 +1,6 @@
 #include "displays.h"
 #include "qpn_port.h"
+#include "common-diode.h"
 
 
 Q_DEFINE_THIS_FILE;
@@ -7,6 +8,13 @@ Q_DEFINE_THIS_FILE;
 
 struct SevenSegmentDisplay displays[2];
 
+#ifdef COMMON_ANODE
+#define DISPLAYSEGMENTS(x) ((~(x)) & 0x7f)
+#endif
+
+#ifdef COMMON_CATHODE
+#define DISPLAYSEGMENTS(x) (x)
+#endif
 
 /**
  * @todo Make this sensitive to a COMMON_ANODE or COMMON_CATHODE setting.
@@ -15,17 +23,17 @@ struct SevenSegmentDisplay displays[2];
  *
  * @todo Put this in program memory.
  */
-static uint8_t segmentmap[] = {
-	0b00111111,		/* '0' */
-	0b00000110,		/* '1' */
-	0b01011011,		/* '2' */
-	0b01001111,		/* '3' */
-	0b01100110,		/* '4' */
-	0b01101101,		/* '5' */
-	0b01111101,		/* '6' */
-	0b00000111,		/* '7' */
-	0b01111111,		/* '8' */
-	0b01101111,		/* '9' */
+static const Q_ROM uint8_t segmentmap[] = {
+	DISPLAYSEGMENTS( 0b00111111 ), /* '0' */
+	DISPLAYSEGMENTS( 0b00000110 ), /* '1' */
+	DISPLAYSEGMENTS( 0b01011011 ), /* '2' */
+	DISPLAYSEGMENTS( 0b01001111 ), /* '3' */
+	DISPLAYSEGMENTS( 0b01100110 ), /* '4' */
+	DISPLAYSEGMENTS( 0b01101101 ), /* '5' */
+	DISPLAYSEGMENTS( 0b01111101 ), /* '6' */
+	DISPLAYSEGMENTS( 0b00000111 ), /* '7' */
+	DISPLAYSEGMENTS( 0b01111111 ), /* '8' */
+	DISPLAYSEGMENTS( 0b01101111 ), /* '9' */
 };
 
 static uint8_t get_segmentmap(char ch)
@@ -35,7 +43,7 @@ static uint8_t get_segmentmap(char ch)
 	}
 	Q_ASSERT(ch >= '0');
 	Q_ASSERT(ch <= '9');
-	return segmentmap[ ch - '0' ];
+	return Q_ROM_BYTE(segmentmap[ ch - '0' ]);
 }
 
 

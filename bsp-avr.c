@@ -3,7 +3,7 @@
 #include "morse.h"
 #include "displays.h"
 #include <avr/wdt.h>
-
+#include "common-diode.h"
 
 Q_DEFINE_THIS_FILE;
 
@@ -56,16 +56,19 @@ void BSP_startmain(void)
 }
 
 
+#ifdef COMMON_ANODE
+#define COM0xn 0b10	      /* Clear OC0A on compare match, set on BOTTOM. */
+#else
+#ifdef COMMON_CATHODE
+#define COM0xn 0b11	      /* Set OC0B on compare match, clear on BOTTOM. */
+#endif
+#endif
 
-/**
- * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.  The polarity
- * of the OCRA and OCRB pins will need to change (hence the COM0An and COM0Bn
- * bits.)
- */
+
 const uint8_t tccr0a_init =
-	(0b10 << COM0A0) |    /* Clear OC0A on compare match, set on BOTTOM. */
-	(0b10 << COM0B0) |    /* Clear OC0B on compare match, set on BOTTOM. */
-	(0b11 << WGM00);      /* Fast PWM. */
+	(COM0xn << COM0A0) |
+	(COM0xn << COM0B0) |
+	(0b11 << WGM00);	/* Fast PWM. */
 
 const uint8_t tccr0b_init =
 	(0 << WGM02) |		/* Fast PWM. */
@@ -208,11 +211,23 @@ SIGNAL(TIM0_OVF_vect)
 	/**
 	 * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.
 	 */
+#ifdef COMMON_CATHODE
 	if (segments & 0x80) {
 		SB(PORTB, 1);
 	} else {
 		CB(PORTB, 1);
 	}
+#else
+#ifdef COMMON_ANODE
+	if (segments & 0x80) {
+		CB(PORTB, 1);
+	} else {
+		SB(PORTB, 1);
+	}
+#else
+#error Must define COMMON_ANODE or COMMON_CATHODE
+#endif
+#endif
 	/**
 	 * @todo Make the brightness values make sense.  This will involve
 	 * inverting the value for one of common anode or common cathode.

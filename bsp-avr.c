@@ -145,7 +145,7 @@ SIGNAL(PCINT1_vect)
 {
 	/* If the event queue already has more than one event being processed
 	   and one waiting, don't put any more in. */
-	if (nEventsUsed((QActive*)(&tapdie)) >= 2)
+	if (nEventsUsed((QActive*)(&tapdie)) > 2)
 		return;
 
 	/* @todo When there is a timer available, use that to ensure we don't

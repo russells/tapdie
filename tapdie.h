@@ -66,7 +66,9 @@ extern struct Tapdie tapdie;
 	} while (0)
 
 /**
- * Find out how many events are in the queue.
+ * Find out how many events are in the queue.  According to the QP-nano source,
+ * this count potentially includes one currently being processed by the state
+ * machine.
  */
 static inline uint8_t nEventsUsed(QActive *o)
 {

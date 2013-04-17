@@ -56,5 +56,6 @@ void BSP_stop_everything(void);
 #include <util/delay.h>
 #define BSP_delay_ms(ms) _delay_ms(ms)
 #endif
+void BSP_do_reset(void);
 
 #endif	/* bsp_h_INCLUDED */

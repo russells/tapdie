@@ -29,6 +29,18 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 }
 
 
+/**
+ * Reset the watchdog timer very early in the startup sequence.  If we try to
+ * do this from the beginning of main(), it often takes too long to get there
+ * due to the data segment initialisation code, and we end up in a reset loop.
+ */
+void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+void wdt_init(void)
+{
+	wdt_disable();
+}
+
+
 static void start_watchdog(void)
 {
 	wdt_reset();
@@ -50,9 +62,65 @@ SIGNAL(WDT_vect)
 }
 
 
+#ifdef COMMON_CATHODE
+#define DPSTART() do { SB(DDRB, 1); SB(DDRB, 2); } while (0)
+#define DPON()    do { SB(PORTB, 1); CB(PORTB, 2); } while (0)
+#define DPOFF()   do { CB(PORTB, 1); } while (0)
+#define DPSTOP()  do { DDRB = 0; PORTB = 0; } while (0)
+
+#else
+
+#ifdef COMMON_ANODE
+#define DPSTART() do { SB(DDRB, 1); SB(DDRB, 2); } while (0)
+#define DPON()    do { CB(PORTB, 1); SB(PORTB, 2); } while (0)
+#define DPOFF()   do { SB(PORTB, 1); } while (0)
+#define DPSTOP()  do { DDRB = 0; PORTB = 0; } while (0)
+#endif
+#endif
+
+#define DP(ton,toff)		 \
+	do {			 \
+		DPON();		 \
+		_delay_ms(ton);	 \
+		DPOFF();	 \
+		_delay_ms(toff); \
+	} while (0)
+
 void BSP_startmain(void)
 {
+	uint8_t prr;
+	uint8_t sreg;
+	uint8_t mcusr;
 
+	wdt_disable();
+	sreg = SREG;
+	cli();
+	prr = PRR;
+	PRR = 0xf;
+
+	/* Flash three times to say we're alive. */
+	DPSTART();
+	DP(100,200);
+	DP(100,200);
+	DP(100,800);
+
+	/* Show the reset reason.  The bits of MCUSR are shifted out to the
+	   left, so the order is PORF, EXTRF, BORF, WDRF.  Two flashes means
+	   set, one flash means not set. */
+	mcusr = MCUSR;
+	MCUSR = 0;
+	for (uint8_t i=0; i<4; i++) {
+		if (mcusr & 0x1) {
+			DP(100,150);
+			DP(100,650);
+		} else {
+			DP(100,900);
+		}
+		mcusr >>= 1;
+	}
+
+	PRR = prr;
+	SREG = sreg;
 }
 
 
@@ -153,7 +221,7 @@ SIGNAL(PCINT1_vect)
 
 	/* @todo When there is a timer available, use that to ensure we don't
 	   send too many TAP_SIGNALs one after the other. */
-	post(&tapdie, TAP_SIGNAL);
+	postISR(&tapdie, TAP_SIGNAL);
 }
 
 
@@ -200,6 +268,31 @@ void BSP_stop_everything(void)
 	PRR = 0b00001111;
 	DDRA = 0;
 	DDRB = 0;
+}
+
+
+/**
+ * Force a chip reset.  We do this by enabling the watchdog, then disabling
+ * interrupts and waiting.  But first, there's a long flash on one decimal
+ * point segment.
+ */
+void BSP_do_reset(void)
+{
+	cli();
+	wdt_disable();
+
+	/* */
+	DPSTART();
+	_delay_ms(250);
+	DPON();
+	_delay_ms(1000);
+	DPOFF();
+	_delay_ms(500);
+	DPSTOP();
+
+	wdt_enable(WDTO_15MS);
+	while (1)
+		;
 }
 
 

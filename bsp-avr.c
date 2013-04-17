@@ -157,25 +157,15 @@ SIGNAL(PCINT1_vect)
 }
 
 
-#ifdef COMMON_ANODE
-#define MORSE_PORT PORTA
-#define MORSE_BIT 7
-#else
-#ifdef COMMON_CATHODE
+#define MORSE_DDR DDRB
 #define MORSE_PORT PORTB
-#define MORSE_BIT 1
-#endif
-#endif
+#define MORSE_BIT 0
 
 
 void BSP_enable_morse_line(void)
 {
-	/* Enable both lines, set them both to 0.  We toggle the right line
-	   later depending on the display's common pin. */
-	CB(PORTA, 7);
-	SB(DDRA, 7);
-	CB(PORTB, 1);
-	SB(DDRB, 1);
+	SB(MORSE_DDR, MORSE_BIT);
+	CB(MORSE_PORT, MORSE_BIT);
 }
 
 
@@ -193,13 +183,9 @@ void BSP_stop_everything(void)
 	cli();
 	wdt_reset();
 	wdt_disable();
-	TCCR0A = 0;		/* Stop timer 0 */
-	TCCR0B = 0;
-	TCCR1A = 0;		/* Stop timer 1 */
-	TCCR1B = 0;
+	TCCR0B = 0;		/* Stop timer 0 */
+	TCCR1B = 0;		/* Stop timer 1 */
 	PRR = 0b00001111;
-	DDRA = 0;
-	DDRB = 0;
 }
 
 

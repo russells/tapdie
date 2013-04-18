@@ -18,6 +18,7 @@ Q_DEFINE_THIS_FILE;
  */
 static uint8_t time_counter = 0;
 
+#define TIME_COUNTER_MAX 200
 
 void QF_onStartup(void)
 {
@@ -64,7 +65,8 @@ void BSP_watchdog(void)
 
 SIGNAL(WDT_vect)
 {
-	if (time_counter < 255) {
+	Q_ASSERT( time_counter <= TIME_COUNTER_MAX );
+	if (time_counter < TIME_COUNTER_MAX) {
 		time_counter ++;
 	}
 	postISR(&tapdie, WATCHDOG_SIGNAL);
@@ -208,6 +210,7 @@ void BSP_deep_sleep(void)
 	CB(MCUCR, SM0);
 	SB(MCUCR, SE);
 
+	Q_ASSERT( time_counter <= TIME_COUNTER_MAX );
 	/* Prepare the counter for the next wake up. */
 	time_counter = 0;
 
@@ -229,14 +232,23 @@ void BSP_deep_sleep(void)
 
 SIGNAL(PCINT1_vect)
 {
+	Q_ASSERT( time_counter <= TIME_COUNTER_MAX );
+
 	/* If the event queue already has more than one event being processed
 	   and one waiting, don't put any more in. */
 	if (nEventsUsed((QActive*)(&tapdie)) > 2)
 		return;
 
-	/* Only send a tap signal if we haven't sent one recently. */
+	/* Only send a tap signal if we haven't sent one recently, or if we're
+	   just waking up now. */
+	if (0 == time_counter) {
+		time_counter = 1;
+		postISR(&tapdie, TAP_SIGNAL);
+		return;
+	}
 	if (time_counter > 30) {
 		postISR(&tapdie, TAP_SIGNAL);
+		return;
 	}
 }
 

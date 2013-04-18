@@ -1,7 +1,0 @@
-From: Russell Steicke <russells@adelie.cx>
-Subject: Display random numbers when tapped.
-
-We display a series of random numbers when awoken.  They are in the
-range 0 to 99.  We display 50 numbers, then go back to sleep.
-
-Signed-off-by: Russell Steicke <russells@adelie.cx>

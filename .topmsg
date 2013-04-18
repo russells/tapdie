@@ -1,0 +1,8 @@
+From: Russell Steicke <russells@adelie.cx>
+Subject: Limit the time between tap signals.
+
+After we wake up, count watchdog events, and use that to limit the
+rate at which we can send tap signals.  If a signal has been sent
+recently (as indicated by the counter) don't send another one.
+
+Signed-off-by: Russell Steicke <russells@adelie.cx>

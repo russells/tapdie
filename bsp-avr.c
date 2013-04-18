@@ -12,6 +12,13 @@ Q_DEFINE_THIS_FILE;
 #define CB(reg,bit) ((reg) &= ~(1 << (bit)))
 
 
+/**
+ * We use this to count watchdog events, and then use that count to limit the
+ * rate at which we send tap signals.
+ */
+static uint8_t time_counter = 0;
+
+
 void QF_onStartup(void)
 {
 
@@ -57,6 +64,9 @@ void BSP_watchdog(void)
 
 SIGNAL(WDT_vect)
 {
+	if (time_counter < 255) {
+		time_counter ++;
+	}
 	postISR(&tapdie, WATCHDOG_SIGNAL);
 	QF_tick();
 }
@@ -91,6 +101,8 @@ void BSP_startmain(void)
 	uint8_t prr;
 	uint8_t sreg;
 	uint8_t mcusr;
+
+	time_counter = 0;
 
 	wdt_disable();
 	sreg = SREG;
@@ -196,6 +208,9 @@ void BSP_deep_sleep(void)
 	CB(MCUCR, SM0);
 	SB(MCUCR, SE);
 
+	/* Prepare the counter for the next wake up. */
+	time_counter = 0;
+
 	/* Don't separate the following two assembly instructions.  See Atmel's
 	   NOTE03. */
 	__asm__ __volatile__ ("sei" "\n\t" :: );
@@ -219,9 +234,10 @@ SIGNAL(PCINT1_vect)
 	if (nEventsUsed((QActive*)(&tapdie)) > 2)
 		return;
 
-	/* @todo When there is a timer available, use that to ensure we don't
-	   send too many TAP_SIGNALs one after the other. */
-	postISR(&tapdie, TAP_SIGNAL);
+	/* Only send a tap signal if we haven't sent one recently. */
+	if (time_counter > 30) {
+		postISR(&tapdie, TAP_SIGNAL);
+	}
 }
 
 

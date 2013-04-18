@@ -93,7 +93,7 @@ static QState numbersState(struct Tapdie *me)
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 50) {
+		if (me->counter >= 2) {
 			return Q_TRAN(deepSleepState);
 		}
 		me->randomnumber = random() % 100;

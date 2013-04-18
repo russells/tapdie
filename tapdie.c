@@ -3,6 +3,7 @@
  *
  */
 
+#include <stdlib.h>
 #include "tapdie.h"
 #include "bsp.h"
 #include "displays.h"
@@ -93,11 +94,16 @@ static QState numbersState(struct Tapdie *me)
 	case NEXT_DIGIT_SIGNAL:
 		if (me->counter >= 2)
 			return Q_TRAN(deepSleepState);
-		if (me->counter & 0b1)
-			set_digits(me->digit | 0x80, 127, me->digit | 0x80, 127);
-		else
-			set_digits(me->digit, 127, me->digit, 127);
-		QActive_arm((QActive*)me, 2);
+		me->randomnumber = random() % 100;
+		uint8_t x = me->randomnumber % 100;
+		me->digits[1] = x % 10 + '0';
+		me->digits[0] = x / 10 + '0';
+		if (me->counter & 0b1) {
+			set_digits(me->digits[1] | 0x80, 127, me->digits[0] | 0x80, 127);
+		} else {
+			set_digits(me->digits[1], 127, me->digits[0], 127);
+		}
+		QActive_arm((QActive*)me, 9);
 		me->digit ++;
 		if (me->digit > '9') {
 			me->digit = '0';

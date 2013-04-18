@@ -93,14 +93,15 @@ static QState numbersState(struct Tapdie *me)
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 20) {
+		if (me->counter >= 50) {
 			return Q_TRAN(deepSleepState);
 		}
 		me->randomnumber = random() % 100;
-		//uint8_t x = me->randomnumber % 100;
 		me->digits[1] = me->randomnumber % 10 + '0';
 		if (me->randomnumber >= 10) {
 			me->digits[0] = me->randomnumber / 10 + '0';
+		} else {
+			me->digits[0] = '\0';
 		}
 		if (me->counter & 0b1) {
 			char ch0;
@@ -109,11 +110,11 @@ static QState numbersState(struct Tapdie *me)
 			} else {
 				ch0 = 0;
 			}
-			set_digits(ch0, 127, me->digits[1] | 0x80, 127);
+			set_digits(ch0, 127, me->digits[1], 127);
 		} else {
 			set_digits(me->digits[0], 127, me->digits[1], 127);
 		}
-		QActive_arm((QActive*)me, 9);
+		QActive_arm((QActive*)me, 7);
 		me->counter ++;
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:

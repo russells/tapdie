@@ -1,12 +1,6 @@
 From: Russell Steicke <russells@adelie.cx>
-Subject: Add a preliminary circuit diagram.
+Subject: Wake on one tap, generate a roll on the next.
 
-This circuit diagram will work for point to point wiring, but may need
-revision to put it on a PCB.
-
-
-	ATtiny84V.sym contains an ATtiny85.  Edit that.
-	et->2000 to change the origin.
-
+Only simulates one die (100 sided) at the moment.
 
 Signed-off-by: Russell Steicke <russells@adelie.cx>

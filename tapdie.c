@@ -3,6 +3,7 @@
  *
  */
 
+#include <stdlib.h>
 #include "tapdie.h"
 #include "bsp.h"
 #include "displays.h"
@@ -86,27 +87,41 @@ static QState numbersState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		me->digit = '0';
+		me->digits[0] = 0;
+		me->digits[1] = 0;
 		me->counter = 0;
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 2)
+		if (me->counter >= 50) {
 			return Q_TRAN(deepSleepState);
-		if (me->counter & 0b1)
-			set_digits(me->digit | 0x80, 127, me->digit | 0x80, 127);
-		else
-			set_digits(me->digit, 127, me->digit, 127);
-		QActive_arm((QActive*)me, 2);
-		me->digit ++;
-		if (me->digit > '9') {
-			me->digit = '0';
-			me->counter ++;
 		}
+		me->randomnumber = random() % 100;
+		me->digits[1] = me->randomnumber % 10 + '0';
+		if (me->randomnumber >= 10) {
+			me->digits[0] = me->randomnumber / 10 + '0';
+		} else {
+			me->digits[0] = '\0';
+		}
+		if (me->counter & 0b1) {
+			char ch0;
+			if (me->digits[0]) {
+				ch0 = me->digits[0] | 0x80;
+			} else {
+				ch0 = 0;
+			}
+			set_digits(ch0, 127, me->digits[1], 127);
+		} else {
+			set_digits(me->digits[0], 127, me->digits[1], 127);
+		}
+		QActive_arm((QActive*)me, 7);
+		me->counter ++;
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
 		post(me, NEXT_DIGIT_SIGNAL);
 		return Q_HANDLED();
+	case TAP_SIGNAL:
+		return Q_TRAN(deepSleepState);
 	case Q_EXIT_SIG:
 		set_digits(' ', 127, ' ', 127);
 		return Q_HANDLED();

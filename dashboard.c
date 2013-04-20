@@ -1,4 +1,5 @@
 #include "dashboard.h"
+#include "displays.h"
 #include "tapdie.h"
 
 
@@ -17,6 +18,9 @@ struct Dashboard dashboard;
 void dashboard_ctor(void)
 {
 	QActive_ctor((QActive *)(&dashboard), (QStateHandler)&dashboardInitial);
+	dashboard.brightness = 127;
+	dashboard.lchar = 0;
+	dashboard.rchar = 0;
 }
 
 
@@ -63,6 +67,17 @@ static QState offState(struct Dashboard *me)
 static QState onState(struct Dashboard *me)
 {
 	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		me->brightness = 127;
+		me->lchar = 0;
+		me->rchar = 0;
+		return Q_HANDLED();
+	case DASH_LCHAR_SIGNAL:
+		set_digit(0, Q_PAR(me), me->brightness);
+		return Q_HANDLED();
+	case DASH_RCHAR_SIGNAL:
+		set_digit(1, Q_PAR(me), me->brightness);
+		return Q_HANDLED();
 	case DASH_OFF_SIGNAL:
 		return Q_TRAN(offState);
 	}

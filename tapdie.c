@@ -94,7 +94,7 @@ static QState numbersState(struct Tapdie *me)
 		me->digits[0] = 0;
 		me->digits[1] = 0;
 		me->counter = 0;
-		post(me, NEXT_DIGIT_SIGNAL);
+		post(me, NEXT_DIGIT_SIGNAL, 0);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
 		if (me->counter >= 50) {
@@ -122,7 +122,7 @@ static QState numbersState(struct Tapdie *me)
 		me->counter ++;
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
-		post(me, NEXT_DIGIT_SIGNAL);
+		post(me, NEXT_DIGIT_SIGNAL, 0);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		return Q_TRAN(deepSleepState);

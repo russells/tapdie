@@ -69,7 +69,7 @@ SIGNAL(WDT_vect)
 	if (time_counter < TIME_COUNTER_MAX) {
 		time_counter ++;
 	}
-	postISR(&tapdie, WATCHDOG_SIGNAL);
+	postISR(&tapdie, WATCHDOG_SIGNAL, 0);
 	QF_tick();
 }
 
@@ -247,7 +247,7 @@ SIGNAL(PCINT1_vect)
 		   interrupt.  These interrupts can happen in quick succession
 		   with a noisy input. */
 		time_counter = 1;
-		postISR(&tapdie, TAP_SIGNAL);
+		postISR(&tapdie, TAP_SIGNAL, 0);
 		return;
 	}
 }

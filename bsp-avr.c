@@ -348,9 +348,6 @@ SIGNAL(TIM0_OVF_vect)
 	segments = displayp->segments;
 	PORTA = segments & 0x7f;
 
-	/**
-	 * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.
-	 */
 #ifdef COMMON_CATHODE
 	if (segments & 0x80) {
 		SB(PORTB, 1);
@@ -368,10 +365,7 @@ SIGNAL(TIM0_OVF_vect)
 #error Must define COMMON_ANODE or COMMON_CATHODE
 #endif
 #endif
-	/**
-	 * @todo Make the brightness values make sense.  This will involve
-	 * inverting the value for one of common anode or common cathode.
-	 */
+
 	if (0 == dnum) {
 		OCR0A = displayp->brightness;
 		SB(DDRB, 2);

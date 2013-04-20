@@ -5,7 +5,7 @@
 #include <avr/wdt.h>
 #include "common-diode.h"
 
-Q_DEFINE_THIS_FILE;
+Q_DEFINE_THIS_MODULE("b");
 
 
 #define SB(reg,bit) ((reg) |= (1 << (bit)))

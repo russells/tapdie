@@ -14,7 +14,7 @@
 struct Tapdie tapdie;
 
 
-Q_DEFINE_THIS_FILE;
+Q_DEFINE_THIS_MODULE("t");
 
 static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);
@@ -118,6 +118,11 @@ static QState numbersState(struct Tapdie *me)
 		me->digits[0] = 0;
 		me->digits[1] = 0;
 		me->counter = 0;
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 4 );
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 5);
+		post(&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
+		post(&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		post(me, NEXT_DIGIT_SIGNAL, 0);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
@@ -148,7 +153,7 @@ static QState numbersState(struct Tapdie *me)
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 3 );
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
 		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		//QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		QActive_arm((QActive*)me, 7);
 		me->counter ++;
 		return Q_HANDLED();

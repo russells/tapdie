@@ -3,7 +3,7 @@
 #include "tapdie.h"
 
 
-Q_DEFINE_THIS_FILE;
+Q_DEFINE_THIS_MODULE("da");
 
 
 static QState dashboardInitial(struct Dashboard *me);
@@ -110,6 +110,11 @@ static QState onState(struct Dashboard *me)
 
 static QState flashingState(struct Dashboard *me)
 {
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		Q_ASSERT( me->max_brightness > me->min_brightness );
+		return Q_HANDLED();
+	}
 	return Q_SUPER(onState);
 }
 
@@ -122,13 +127,22 @@ static QState flashingUpState(struct Dashboard *me)
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
 		if (me->brightness < me->max_brightness) {
-			me->brightness ++;
+			if (me->brightness > 100 && me->brightness < 252) {
+				me->brightness += 4;
+			} else if (me->brightness > 50) {
+				me->brightness += 2;
+			} else {
+				me->brightness ++;
+			}
 			set_brightness(me->brightness);
+			QActive_arm((QActive*)me, 1);
+			return Q_HANDLED();
 		} else {
 			return Q_TRAN(flashingDownState);
 		}
+	case Q_EXIT_SIG:
+		return Q_HANDLED();
 	}
-
 	return Q_SUPER(flashingState);
 }
 
@@ -141,8 +155,16 @@ static QState flashingDownState(struct Dashboard *me)
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
 		if (me->brightness > me->min_brightness) {
-			me->brightness --;
+			if (me->brightness > 100) {
+				me->brightness -= 4;
+			} else if (me->brightness > 50) {
+				me->brightness -= 2;
+			} else {
+				me->brightness --;
+			}
 			set_brightness(me->brightness);
+			QActive_arm((QActive*)me, 1);
+			return Q_HANDLED();
 		} else {
 			return Q_TRAN(flashingUpState);
 		}

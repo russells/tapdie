@@ -3,7 +3,7 @@
 #include "common-diode.h"
 
 
-Q_DEFINE_THIS_FILE;
+Q_DEFINE_THIS_MODULE("di");
 
 
 struct SevenSegmentDisplay displays[2];

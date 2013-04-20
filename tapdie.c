@@ -141,7 +141,9 @@ static QState numbersState(struct Tapdie *me)
 			post(&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
 			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		} else {
-			set_digits(me->digits[0], 127, me->digits[1], 127);
+			post(&dashboard, DASH_LCHAR_SIGNAL, me->digits[0]);
+			post(&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
+			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		}
 		QActive_arm((QActive*)me, 7);
 		me->counter ++;
@@ -152,7 +154,6 @@ static QState numbersState(struct Tapdie *me)
 	case TAP_SIGNAL:
 		return Q_TRAN(deepSleepState);
 	case Q_EXIT_SIG:
-		set_digits(' ', 127, ' ', 127);
 		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);

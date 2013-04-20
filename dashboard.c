@@ -2,6 +2,9 @@
 #include "tapdie.h"
 
 
+Q_DEFINE_THIS_FILE;
+
+
 static QState dashboardInitial(struct Dashboard *me);
 static QState dashboardState(struct Dashboard *me);
 static QState offState(struct Dashboard *me);
@@ -32,6 +35,18 @@ static QState dashboardState(struct Dashboard *me)
 static QState offState(struct Dashboard *me)
 {
 	switch (Q_SIG(me)) {
+
+	/* These signals should not happen until after we've woken up properly,
+	   so let's find out if that happens or not by stopping the program if
+	   they do. */
+	case DASH_LCHAR_SIGNAL:
+		Q_ASSERT(0);
+	case DASH_RCHAR_SIGNAL:
+		Q_ASSERT(0);
+	case DASH_BRIGHTNESS_SIGNAL:
+		Q_ASSERT(0);
+		/* Ignore all of these until we get out of the off state. */
+		return Q_HANDLED();
 	case DASH_ON_SIGNAL:
 		return Q_TRAN(onState);
 	case Q_ENTRY_SIG:

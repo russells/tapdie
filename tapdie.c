@@ -19,6 +19,7 @@ Q_DEFINE_THIS_FILE;
 static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);
 static QState deepSleepState       (struct Tapdie *me);
+static QState deepSleepEntryState  (struct Tapdie *me);
 static QState numbersState         (struct Tapdie *me);
 
 
@@ -74,6 +75,26 @@ static QState tapdieState(struct Tapdie *me)
 }
 
 
+static QState deepSleepEntryState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		/* Tell the dashboard to go off, then wait for that to be
+		   handled. */
+		post(&dashboard, DASH_OFF_SIGNAL, 0);
+		QActive_arm((QActive*)me, 2);
+		return Q_HANDLED();
+	case TAP_SIGNAL:
+		/* Ignore tap signals while we're waiting for the display to
+		   turn off. */
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(deepSleepState);
+	}
+	return Q_SUPER(tapdieState);
+}
+
+
 static QState deepSleepState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
@@ -98,7 +119,7 @@ static QState numbersState(struct Tapdie *me)
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
 		if (me->counter >= 50) {
-			return Q_TRAN(deepSleepState);
+			return Q_TRAN(deepSleepEntryState);
 		}
 		me->randomnumber = random() % 100;
 		me->digits[1] = me->randomnumber % 10 + '0';

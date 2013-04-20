@@ -14,7 +14,7 @@
 struct Tapdie tapdie;
 
 
-Q_DEFINE_THIS_MODULE("t");
+Q_DEFINE_THIS_FILE;
 
 static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);

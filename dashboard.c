@@ -3,7 +3,7 @@
 #include "tapdie.h"
 
 
-Q_DEFINE_THIS_MODULE("da");
+Q_DEFINE_THIS_FILE;
 
 
 static QState dashboardInitial(struct Dashboard *me);

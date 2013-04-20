@@ -45,7 +45,7 @@ CFLAGS  = -c -gdwarf-2 -std=gnu99 -Os -fsigned-char -fshort-enums \
 	$(COMMON_DIODE_FLAG)
 LINKFLAGS = -gdwarf-2 -Os -mmcu=$(TARGET_MCU)
 
-SRCS = tapdie.c bsp-avr.c qepn.c qfn.c morse.c displays.c dashboard.c
+SRCS = tapdie.c bsp-avr.c qepn.c qfn.c morse.c displays.c
 
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)

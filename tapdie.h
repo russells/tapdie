@@ -12,11 +12,6 @@ enum TapdieSignals {
 	WATCHDOG_SIGNAL = Q_USER_SIG,
 	TAP_SIGNAL,
 	NEXT_DIGIT_SIGNAL,
-	DASH_OFF_SIGNAL,
-	DASH_ON_SIGNAL,
-	DASH_LCHAR_SIGNAL,
-	DASH_RCHAR_SIGNAL,
-	DASH_BRIGHTNESS_SIGNAL,
 	MAX_PUB_SIG,
 	MAX_SIG,
 };
@@ -50,12 +45,12 @@ extern struct Tapdie tapdie;
  * know which state machine's queue is full.  If this check is done in user
  * code instead of library code we can tell them apart.
  */
-#define post(o, sig, par)						\
+#define post(o, sig)							\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_post(_me, sig, par);				\
+		QActive_post(_me, sig);					\
 	} while (0)
 
 /**
@@ -63,12 +58,12 @@ extern struct Tapdie tapdie;
  *
  * @see post()
  */
-#define postISR(o, sig, par)						\
+#define postISR(o, sig)							\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_postISR(_me, sig, par);				\
+		QActive_postISR(_me, sig);				\
 	} while (0)
 
 /**
@@ -79,15 +74,6 @@ extern struct Tapdie tapdie;
 static inline uint8_t nEventsUsed(QActive *o)
 {
 	return o->nUsed;
-}
-
-/**
- * Find out how many more events can fit in the queue.
- */
-static inline uint8_t nEventsFree(QActive *o)
-{
-	QActiveCB const Q_ROM *ao = &QF_active[o->prio];
-	return Q_ROM_BYTE(ao->end) - o->nUsed;
 }
 
 #endif

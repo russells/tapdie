@@ -13,6 +13,9 @@ static QState onState(struct Dashboard *me);
 static QState fadingState(struct Dashboard *me);
 static QState fadingUpState(struct Dashboard *me);
 static QState fadingDownState(struct Dashboard *me);
+static QState flashingState(struct Dashboard *me);
+static QState flashingHighState(struct Dashboard *me);
+static QState flashingLowState(struct Dashboard *me);
 
 
 struct Dashboard dashboard;
@@ -79,12 +82,12 @@ static QState onState(struct Dashboard *me)
 	case DASH_LCHAR_SIGNAL:
 		ch = (char) Q_PAR(me);
 		me->lchar = ch;
-		set_digit(0, ch, me->brightness);
+		set_digit(0, ch);
 		return Q_HANDLED();
 	case DASH_RCHAR_SIGNAL:
 		ch = (char) Q_PAR(me);
 		me->rchar = ch;
-		set_digit(1, ch, me->brightness);
+		set_digit(1, ch);
 		return Q_HANDLED();
 	case DASH_BRIGHTNESS_SIGNAL:
 		me->brightness = Q_PAR(me);
@@ -100,6 +103,8 @@ static QState onState(struct Dashboard *me)
 		return Q_TRAN(offState);
 	case DASH_START_FADING_SIGNAL:
 		return Q_TRAN(fadingDownState);
+	case DASH_START_FLASHING_SIGNAL:
+		return Q_TRAN(flashingHighState);
 	case DASH_STEADY_SIGNAL:
 		set_brightness(me->brightness);
 		return Q_TRAN(onState);
@@ -170,4 +175,46 @@ static QState fadingDownState(struct Dashboard *me)
 		}
 	}
 	return Q_SUPER(fadingState);
+}
+
+
+static QState flashingState(struct Dashboard *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		Q_ASSERT( me->max_brightness > me->min_brightness );
+		return Q_HANDLED();
+	case Q_EXIT_SIG:
+		set_brightness(me->brightness);
+		return Q_HANDLED();
+	}
+	return Q_SUPER(onState);
+}
+
+
+static QState flashingHighState(struct Dashboard *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		set_brightness(me->max_brightness);
+		QActive_arm((QActive*)me, 30);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(flashingLowState);
+	}
+	return Q_SUPER(flashingState);
+}
+
+
+static QState flashingLowState(struct Dashboard *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		set_brightness(me->min_brightness);
+		QActive_arm((QActive*)me, 30);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(flashingHighState);
+	}
+	return Q_SUPER(flashingState);
 }

@@ -37,8 +37,8 @@
 #define QF_TIMEEVT_CTR_SIZE     2 /* 16 bit time counter. */
 
 /* maximum # active objects--must match EXACTLY the QF_active[] definition  */
-#define QF_MAX_ACTIVE           2 /* The tap die has these active objects:
-				     tapdie, dashboard. */
+#define QF_MAX_ACTIVE           1 /* The tap die has these active objects:
+				     tapdie. */
 
                                /* interrupt locking policy for IAR compiler */
 #define QF_INT_LOCK()           cli()

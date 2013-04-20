@@ -7,7 +7,6 @@
 #include "tapdie.h"
 #include "bsp.h"
 #include "displays.h"
-#include "dashboard.h"
 
 
 /** The only active Tapdie. */
@@ -23,12 +22,10 @@ static QState numbersState         (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
-static QEvent dashboardQueue[4];
 
 QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 	{ (QActive *)0              , (QEvent *)0      , 0                        },
 	{ (QActive *)(&tapdie)      , tapdieQueue      , Q_DIM(tapdieQueue)       },
-	{ (QActive *)(&dashboard)   , dashboardQueue   , Q_DIM(dashboardQueue)    },
 };
 /* If QF_MAX_ACTIVE is incorrectly defined, the compiler says something like:
    tapdie.c:68: error: size of array ‘Q_assert_compile’ is negative
@@ -43,7 +40,6 @@ int main(int argc, char **argv)
 	displays_init();
 	BSP_init(); /* initialize the Board Support Package */
 	tapdie_ctor();
-	dashboard_ctor();
 
 	QF_run();
 

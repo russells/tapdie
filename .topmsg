@@ -1,0 +1,6 @@
+From: Russell Steicke <russells@adelie.cx>
+Subject: Wake on one tap, generate a roll on the next.
+
+Only simulates one die (100 sided) at the moment.
+
+Signed-off-by: Russell Steicke <russells@adelie.cx>

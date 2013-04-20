@@ -160,7 +160,7 @@ static QState numbersState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
 		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
 		//QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_arm((QActive*)me, 70);
+		QActive_arm((QActive*)me, 7);
 		me->counter ++;
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:

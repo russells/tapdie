@@ -10,9 +10,9 @@ static QState dashboardInitial(struct Dashboard *me);
 static QState dashboardState(struct Dashboard *me);
 static QState offState(struct Dashboard *me);
 static QState onState(struct Dashboard *me);
-static QState flashingState(struct Dashboard *me);
-static QState flashingUpState(struct Dashboard *me);
-static QState flashingDownState(struct Dashboard *me);
+static QState fadingState(struct Dashboard *me);
+static QState fadingUpState(struct Dashboard *me);
+static QState fadingDownState(struct Dashboard *me);
 
 
 struct Dashboard dashboard;
@@ -98,9 +98,9 @@ static QState onState(struct Dashboard *me)
 		return Q_HANDLED();
 	case DASH_OFF_SIGNAL:
 		return Q_TRAN(offState);
-	case DASH_START_FLASHING_SIGNAL:
-		return Q_TRAN(flashingDownState);
-	case DASH_STOP_FLASHING_SIGNAL:
+	case DASH_START_FADING_SIGNAL:
+		return Q_TRAN(fadingDownState);
+	case DASH_STEADY_SIGNAL:
 		set_brightness(me->brightness);
 		return Q_TRAN(onState);
 	}
@@ -108,7 +108,7 @@ static QState onState(struct Dashboard *me)
 }
 
 
-static QState flashingState(struct Dashboard *me)
+static QState fadingState(struct Dashboard *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -119,7 +119,7 @@ static QState flashingState(struct Dashboard *me)
 }
 
 
-static QState flashingUpState(struct Dashboard *me)
+static QState fadingUpState(struct Dashboard *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -138,16 +138,16 @@ static QState flashingUpState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
-			return Q_TRAN(flashingDownState);
+			return Q_TRAN(fadingDownState);
 		}
 	case Q_EXIT_SIG:
 		return Q_HANDLED();
 	}
-	return Q_SUPER(flashingState);
+	return Q_SUPER(fadingState);
 }
 
 
-static QState flashingDownState(struct Dashboard *me)
+static QState fadingDownState(struct Dashboard *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -166,8 +166,8 @@ static QState flashingDownState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
-			return Q_TRAN(flashingUpState);
+			return Q_TRAN(fadingUpState);
 		}
 	}
-	return Q_SUPER(flashingState);
+	return Q_SUPER(fadingState);
 }

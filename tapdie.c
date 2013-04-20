@@ -122,7 +122,7 @@ static QState numbersState(struct Tapdie *me)
 		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 5);
 		post(&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		post(&dashboard, DASH_START_FLASHING_SIGNAL, 0);
+		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
 		post(me, NEXT_DIGIT_SIGNAL, 0);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:

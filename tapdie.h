@@ -81,4 +81,13 @@ static inline uint8_t nEventsUsed(QActive *o)
 	return o->nUsed;
 }
 
+/**
+ * Find out how many more events can fit in the queue.
+ */
+static inline uint8_t nEventsFree(QActive *o)
+{
+	QActiveCB const Q_ROM *ao = &QF_active[o->prio];
+	return Q_ROM_BYTE(ao->end) - o->nUsed;
+}
+
 #endif

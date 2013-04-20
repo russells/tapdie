@@ -111,6 +111,8 @@ static QState deepSleepState(struct Tapdie *me)
 
 static QState numbersState(struct Tapdie *me)
 {
+	char ch0;
+
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->digits[0] = 0;
@@ -130,21 +132,23 @@ static QState numbersState(struct Tapdie *me)
 			me->digits[0] = '\0';
 		}
 		if (me->counter & 0b1) {
-			char ch0;
 			if (me->digits[0]) {
 				ch0 = me->digits[0] | 0x80;
 			} else {
 				ch0 = 0;
 			}
-			//set_digits(ch0, 127, me->digits[1], 127);
-			post(&dashboard, DASH_LCHAR_SIGNAL, ch0);
-			post(&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		} else {
-			post(&dashboard, DASH_LCHAR_SIGNAL, me->digits[0]);
-			post(&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+			ch0 = me->digits[0];
 		}
+		/* Checking the remaining space in the queue once then posting
+		   the three events, instead of checking three tmes with the
+		   post() macro, combined with posting here rather than in each
+		   branch of the if-else code above, saves over 200 bytes of
+		   program memory. */
+		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 3 );
+		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
+		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		QActive_arm((QActive*)me, 7);
 		me->counter ++;
 		return Q_HANDLED();

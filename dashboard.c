@@ -54,10 +54,9 @@ static QState offState(struct Dashboard *me)
 	case DASH_ON_SIGNAL:
 		return Q_TRAN(onState);
 	case Q_ENTRY_SIG:
-		/* FIXME turn off the displays. */
+		set_brightness(0);
 		break;
 	case Q_EXIT_SIG:
-		/* FIXME turn on the displays. */
 		break;
 	}
 	return Q_SUPER(&dashboardState);
@@ -66,6 +65,8 @@ static QState offState(struct Dashboard *me)
 
 static QState onState(struct Dashboard *me)
 {
+	char ch;
+
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->brightness = 127;
@@ -73,10 +74,18 @@ static QState onState(struct Dashboard *me)
 		me->rchar = 0;
 		return Q_HANDLED();
 	case DASH_LCHAR_SIGNAL:
-		set_digit(0, Q_PAR(me), me->brightness);
+		ch = (char) Q_PAR(me);
+		me->lchar = ch;
+		set_digit(0, ch, me->brightness);
 		return Q_HANDLED();
 	case DASH_RCHAR_SIGNAL:
-		set_digit(1, Q_PAR(me), me->brightness);
+		ch = (char) Q_PAR(me);
+		me->rchar = ch;
+		set_digit(1, ch, me->brightness);
+		return Q_HANDLED();
+	case DASH_BRIGHTNESS_SIGNAL:
+		me->brightness = Q_PAR(me);
+		set_brightness(me->brightness);
 		return Q_HANDLED();
 	case DASH_OFF_SIGNAL:
 		return Q_TRAN(offState);

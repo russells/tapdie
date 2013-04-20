@@ -24,7 +24,7 @@ static QState numbersState         (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
-static QEvent dashboardQueue[4];
+static QEvent dashboardQueue[6];
 
 QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 	{ (QActive *)0              , (QEvent *)0      , 0                        },
@@ -102,6 +102,7 @@ static QState deepSleepState(struct Tapdie *me)
 		BSP_deep_sleep();
 		return Q_HANDLED();
 	case TAP_SIGNAL:
+		post(&dashboard, DASH_ON_SIGNAL, 0);
 		return Q_TRAN(numbersState);
 	}
 	return Q_SUPER(tapdieState);
@@ -135,7 +136,10 @@ static QState numbersState(struct Tapdie *me)
 			} else {
 				ch0 = 0;
 			}
-			set_digits(ch0, 127, me->digits[1], 127);
+			//set_digits(ch0, 127, me->digits[1], 127);
+			post(&dashboard, DASH_LCHAR_SIGNAL, ch0);
+			post(&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
+			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		} else {
 			set_digits(me->digits[0], 127, me->digits[1], 127);
 		}

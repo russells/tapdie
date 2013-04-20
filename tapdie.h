@@ -47,26 +47,28 @@ extern struct Tapdie tapdie;
  * know which state machine's queue is full.  If this check is done in user
  * code instead of library code we can tell them apart.
  */
-#define post(o, sig)							\
+#define postpar(o, sig, par)						\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_post(_me, sig);					\
+		QActive_post(_me, sig, par);				\
 	} while (0)
+#define post(o, sig) postpar(o, sig, 0);
 
 /**
  * Call this instead of calling QActive_postISR().
  *
  * @see post()
  */
-#define postISR(o, sig)							\
+#define postISRpar(o, sig, par)						\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_postISR(_me, sig);				\
+		QActive_postISR(_me, sig, par);				\
 	} while (0)
+#define postISR(o, sig) postISRpar(o, sig, 0);
 
 /**
  * Find out how many events are in the queue.  According to the QP-nano source,

@@ -33,7 +33,7 @@
 #define Q_ROM_PTR(rom_var_)     pgm_read_word_near(&(rom_var_))
 
 #define Q_NFSM
-#define Q_PARAM_SIZE            0 /* Our event has no extra parameters. */
+#define Q_PARAM_SIZE            1 /* Our event has one extra parameter. */
 #define QF_TIMEEVT_CTR_SIZE     2 /* 16 bit time counter. */
 
 /* maximum # active objects--must match EXACTLY the QF_active[] definition  */

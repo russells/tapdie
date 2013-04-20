@@ -154,7 +154,7 @@ const uint8_t tccr0a_init =
 
 const uint8_t tccr0b_init =
 	(0 << WGM02) |		/* Fast PWM. */
-	(0b010 << CS00);	/* CLKio/8 */
+	(0b001 << CS00);	/* CLKio/1 */
 
 const uint8_t ddra_init  = 0xff;
 const uint8_t porta_init = 0x00;
@@ -333,12 +333,27 @@ void BSP_do_reset(void)
  */
 SIGNAL(TIM0_OVF_vect)
 {
+	static uint8_t counter = 0;
 	static uint8_t dnum;
+	static uint8_t segmentmask = 0b1;
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
 
+	counter >>= 1;
+	if (!counter) {
+		counter = 0b100;
+	} else {
+		return;
+	}
+
 	CB(DDRA, 7);		/* Clear before set so we don't run both. */
 	CB(DDRB, 2);
+
+	segmentmask <<= 1;
+	if (0 == segmentmask) {
+		dnum = !dnum;
+		segmentmask = 0b1;
+	}
 
 	if (0 == dnum) {
 		displayp = displays;
@@ -346,7 +361,15 @@ SIGNAL(TIM0_OVF_vect)
 		displayp = displays + 1;
 	}
 	segments = displayp->segments;
-	PORTA = segments & 0x7f;
+	/* We can ignore bit 7 (MSB) of PORTA, because it is used as timer 0's
+	   OC0A output bit. */
+#ifdef COMMON_CATHODE
+	PORTA = segments & segmentmask;
+#else
+#ifdef COMMON_ANODE
+	PORTA = segments | (~segmentmask);
+#endif
+#endif
 
 #ifdef COMMON_CATHODE
 	if (segments & 0x80) {
@@ -373,6 +396,4 @@ SIGNAL(TIM0_OVF_vect)
 		OCR0B = displayp->brightness;
 		SB(DDRA, 7);
 	}
-
-	dnum = ! dnum;		/* Other display next time. */
 }

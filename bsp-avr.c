@@ -339,11 +339,17 @@ SIGNAL(TIM0_OVF_vect)
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
 
-	counter >>= 1;
-	if (!counter) {
-		counter = 0b100;
-	} else {
+	/* This makes us exit the ISR early 3 of 4 times.  CLKio is 1e6, so the
+	   interrupt rate is 1e6/256==3906Hz.  Running 1 of 4 of the interrupt
+	   routines gives us an effective rate of about 976Hz.  We have 16
+	   segments on two displays, so the flashing rate on each is
+	   976/16==61Hz.  Each segment will actually flash four times each time
+	   it is displayed, before we move on to the next segment. */
+	if (counter) {
+		counter >>= 1;
 		return;
+	} else {
+		counter = 0b100;
 	}
 
 	CB(DDRA, 7);		/* Clear before set so we don't run both. */

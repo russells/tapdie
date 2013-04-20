@@ -10,6 +10,9 @@ static QState dashboardInitial(struct Dashboard *me);
 static QState dashboardState(struct Dashboard *me);
 static QState offState(struct Dashboard *me);
 static QState onState(struct Dashboard *me);
+static QState flashingState(struct Dashboard *me);
+static QState flashingUpState(struct Dashboard *me);
+static QState flashingDownState(struct Dashboard *me);
 
 
 struct Dashboard dashboard;
@@ -87,8 +90,62 @@ static QState onState(struct Dashboard *me)
 		me->brightness = Q_PAR(me);
 		set_brightness(me->brightness);
 		return Q_HANDLED();
+	case DASH_MAX_BRIGHTNESS_SIGNAL:
+		me->max_brightness = Q_PAR(me);
+		return Q_HANDLED();
+	case DASH_MIN_BRIGHTNESS_SIGNAL:
+		me->min_brightness = Q_PAR(me);
+		return Q_HANDLED();
 	case DASH_OFF_SIGNAL:
 		return Q_TRAN(offState);
+	case DASH_START_FLASHING_SIGNAL:
+		return Q_TRAN(flashingDownState);
+	case DASH_STOP_FLASHING_SIGNAL:
+		set_brightness(me->brightness);
+		return Q_TRAN(onState);
 	}
 	return Q_SUPER(&dashboardState);
+}
+
+
+static QState flashingState(struct Dashboard *me)
+{
+	return Q_SUPER(onState);
+}
+
+
+static QState flashingUpState(struct Dashboard *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		QActive_arm((QActive*)me, 1);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		if (me->brightness < me->max_brightness) {
+			me->brightness ++;
+			set_brightness(me->brightness);
+		} else {
+			return Q_TRAN(flashingDownState);
+		}
+	}
+
+	return Q_SUPER(flashingState);
+}
+
+
+static QState flashingDownState(struct Dashboard *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		QActive_arm((QActive*)me, 1);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		if (me->brightness > me->min_brightness) {
+			me->brightness --;
+			set_brightness(me->brightness);
+		} else {
+			return Q_TRAN(flashingUpState);
+		}
+	}
+	return Q_SUPER(flashingState);
 }

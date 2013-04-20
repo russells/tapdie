@@ -5,6 +5,8 @@ struct Dashboard {
 	char lchar;
 	char rchar;
 	uint8_t brightness;
+	uint8_t min_brightness;
+	uint8_t max_brightness;
 };
 
 extern struct Dashboard dashboard;

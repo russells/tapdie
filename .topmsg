@@ -1,0 +1,8 @@
+From: Russell Steicke <russells@adelie.cx>
+Subject: Only run one display segment at a time.
+
+Because the power source may be a CR2032, we may have limited current
+available - about 3mA.  So only power one display segment at a time to
+avoid drawing much more than this.
+
+Signed-off-by: Russell Steicke <russells@adelie.cx>

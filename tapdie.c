@@ -112,23 +112,12 @@ static QState deepSleepState(struct Tapdie *me)
 static QState numbersState(struct Tapdie *me)
 {
 	char ch0;
-	static uint8_t cc = 0;
 
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->digits[0] = 0;
 		me->digits[1] = 0;
 		me->counter = 0;
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 4 );
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
-		post(&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		cc ++;
-		if (cc & 0b1) {
-			post(&dashboard, DASH_START_FLASHING_SIGNAL, 0);
-		} else {
-			post(&dashboard, DASH_START_FADING_SIGNAL, 0);
-		}
 		post(me, NEXT_DIGIT_SIGNAL, 0);
 		return Q_HANDLED();
 	case NEXT_DIGIT_SIGNAL:
@@ -159,7 +148,7 @@ static QState numbersState(struct Tapdie *me)
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 3 );
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
 		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-		//QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		QActive_arm((QActive*)me, 7);
 		me->counter ++;
 		return Q_HANDLED();

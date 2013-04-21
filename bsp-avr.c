@@ -154,7 +154,7 @@ const uint8_t tccr0a_init =
 
 const uint8_t tccr0b_init =
 	(0 << WGM02) |		/* Fast PWM. */
-	(0b010 << CS00);	/* CLKio/8 */
+	(0b001 << CS00);	/* CLKio/1 */
 
 const uint8_t ddra_init  = 0xff;
 const uint8_t porta_init = 0x00;
@@ -333,12 +333,33 @@ void BSP_do_reset(void)
  */
 SIGNAL(TIM0_OVF_vect)
 {
+	static uint8_t counter = 0;
 	static uint8_t dnum;
+	static uint8_t segmentmask = 0b1;
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
 
+	/* This makes us exit the ISR early 3 of 4 times.  CLKio is 1e6, so the
+	   interrupt rate is 1e6/256==3906Hz.  Running 1 of 4 of the interrupt
+	   routines gives us an effective rate of about 976Hz.  We have 16
+	   segments on two displays, so the flashing rate on each is
+	   976/16==61Hz.  Each segment will actually flash four times each time
+	   it is displayed, before we move on to the next segment. */
+	if (counter) {
+		counter >>= 1;
+		return;
+	} else {
+		counter = 0b100;
+	}
+
 	CB(DDRA, 7);		/* Clear before set so we don't run both. */
 	CB(DDRB, 2);
+
+	segmentmask <<= 1;
+	if (0 == segmentmask) {
+		dnum = !dnum;
+		segmentmask = 0b1;
+	}
 
 	if (0 == dnum) {
 		displayp = displays;
@@ -346,11 +367,16 @@ SIGNAL(TIM0_OVF_vect)
 		displayp = displays + 1;
 	}
 	segments = displayp->segments;
-	PORTA = segments & 0x7f;
+	/* We can ignore bit 7 (MSB) of PORTA, because it is used as timer 0's
+	   OC0A output bit. */
+#ifdef COMMON_CATHODE
+	PORTA = segments & segmentmask;
+#else
+#ifdef COMMON_ANODE
+	PORTA = segments | (~segmentmask);
+#endif
+#endif
 
-	/**
-	 * @todo Make this sensitive to COMMON_ANODE and COMMON_CATHODE.
-	 */
 #ifdef COMMON_CATHODE
 	if (segments & 0x80) {
 		SB(PORTB, 1);
@@ -368,10 +394,7 @@ SIGNAL(TIM0_OVF_vect)
 #error Must define COMMON_ANODE or COMMON_CATHODE
 #endif
 #endif
-	/**
-	 * @todo Make the brightness values make sense.  This will involve
-	 * inverting the value for one of common anode or common cathode.
-	 */
+
 	if (0 == dnum) {
 		OCR0A = displayp->brightness;
 		SB(DDRB, 2);
@@ -379,6 +402,4 @@ SIGNAL(TIM0_OVF_vect)
 		OCR0B = displayp->brightness;
 		SB(DDRA, 7);
 	}
-
-	dnum = ! dnum;		/* Other display next time. */
 }

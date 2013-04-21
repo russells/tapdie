@@ -17,11 +17,6 @@ struct SevenSegmentDisplay displays[2];
 #endif
 
 /**
- * @todo Make this sensitive to a COMMON_ANODE or COMMON_CATHODE setting.
- * Perhaps define a macro to go before each constant that will be empty for one
- * and invert the constant value for the other.
- *
- * @todo Put this in program memory.
  */
 static const Q_ROM uint8_t segmentmap[] = {
 	DISPLAYSEGMENTS( 0b00111111 ), /* '0' */

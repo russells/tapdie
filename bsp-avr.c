@@ -241,13 +241,13 @@ SIGNAL(PCINT1_vect)
 
 	/* Only send a tap signal if we haven't sent one recently, or if we're
 	   just waking up now. */
-	if (0 == time_counter || time_counter > 30) {
+	if (0 == time_counter || time_counter > 7) {
+		postISR(&tapdie, TAP_SIGNAL, time_counter);
 		/* We need to set time_counter to non-zero here, or in the case
 		   where we've just woken up, it may be zero again at the next
 		   interrupt.  These interrupts can happen in quick succession
 		   with a noisy input. */
 		time_counter = 1;
-		postISR(&tapdie, TAP_SIGNAL, 0);
 		return;
 	}
 }

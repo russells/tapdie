@@ -10,7 +10,8 @@ enum TapdieSignals {
 	 * running.
 	 */
 	WATCHDOG_SIGNAL = Q_USER_SIG,
-	TAP_SIGNAL,
+	TAP_SIGNAL,		/** Comes with a counter that tells us how long
+				    since the last tap. */
 	NEXT_DIGIT_SIGNAL,
 	DASH_OFF_SIGNAL,
 	DASH_ON_SIGNAL,

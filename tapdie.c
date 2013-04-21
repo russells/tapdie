@@ -55,6 +55,7 @@ void tapdie_ctor(void)
 {
 	QActive_ctor((QActive *)(&tapdie), (QStateHandler)&tapdieInitial);
 	tapdie.counter = 0;
+	tapdie.mode = D6;
 }
 
 

@@ -34,12 +34,28 @@ void tapdie_ctor(void);
 
 
 /**
+ * The list of tapdie modes.  Each one is also used as the maximum roll number,
+ * so it's more than an enum - we actually use the values as well.
+ */
+enum TapdieMode {
+	D4 = 4,
+	D6 = 6,
+	D8 = 8,
+	D10 = 10,
+	D12 = 12,
+	D20 = 20,
+	D100 = 100,
+};
+
+
+/**
  */
 struct Tapdie {
 	QActive super;
 	char digits[2];
 	uint8_t randomnumber;
 	uint8_t counter;
+	enum TapdieMode mode;
 };
 
 

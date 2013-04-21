@@ -24,7 +24,7 @@ static QState aliveState           (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
-static QEvent dashboardQueue[6];
+static QEvent dashboardQueue[9];
 
 QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 	{ (QActive *)0              , (QEvent *)0      , 0                        },
@@ -110,10 +110,24 @@ static QState deepSleepState(struct Tapdie *me)
 }
 
 
+static void rotate_mode(void)
+{
+	switch (tapdie.mode) {
+	case D4: tapdie.mode = D6; break;
+	case D6: tapdie.mode = D8; break;
+	case D8: tapdie.mode = D10; break;
+	case D10: tapdie.mode = D12; break;
+	case D12: tapdie.mode = D20; break;
+	case D20: tapdie.mode = D100; break;
+	case D100: tapdie.mode = D4; break;
+	default: Q_ASSERT(0); break;
+	}
+}
+
+
 static QState aliveState(struct Tapdie *me)
 {
-	char ch0;
-	static uint8_t cc = 0;
+	char ch0, ch1;
 
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -121,17 +135,38 @@ static QState aliveState(struct Tapdie *me)
 		me->digits[1] = 0;
 		me->counter = 0;
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 4 );
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
-		post(&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		cc ++;
-		if (cc & 0b1) {
-			post(&dashboard, DASH_START_FLASHING_SIGNAL, 0);
-		} else {
-			post(&dashboard, DASH_START_FADING_SIGNAL, 0);
-		}
-		post(me, NEXT_DIGIT_SIGNAL, 0);
+		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
+		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
+		post(me, SET_MODE_SIGNAL, 0);
 		return Q_HANDLED();
+
+	case SET_MODE_SIGNAL:
+		switch (me->mode) {
+		case D4:
+			ch0 = '\0'; ch1 = '4'; break;
+		case D6:
+			ch0 = '\0'; ch1 = '6'; break;
+		case D8:
+			ch0 = '\0'; ch1 = '8'; break;
+		case D10:
+			ch0 = '1'; ch1 = '0'; break;
+		case D12:
+			ch0 = '1'; ch1 = '2'; break;
+		case D20:
+			ch0 = '2'; ch1 = '0'; break;
+		case D100:
+			ch0 = '0'; ch1 = '0'; break;
+		default:
+			ch0 = '9'; ch1 = '9'; Q_ASSERT(0); break;
+		}
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
+		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
+		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
+		return Q_HANDLED();
+
 	case NEXT_DIGIT_SIGNAL:
 		if (me->counter >= 50) {
 			return Q_TRAN(deepSleepEntryState);
@@ -174,3 +209,16 @@ static QState aliveState(struct Tapdie *me)
 	}
 	return Q_SUPER(tapdieState);
 }
+
+
+/*
+  FIXME stuff to think about.
+
+  - The first tap wakes us up and we display the current mode.  What happens
+  with the next tap?  If it's very close to the wakeup tap, do we use that as
+  a mode change, or a roll?
+
+  - Do we need waiting states all over the place to catch the very close
+    together taps?
+
+*/

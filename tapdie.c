@@ -20,7 +20,7 @@ static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);
 static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
-static QState numbersState         (struct Tapdie *me);
+static QState aliveState           (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -104,13 +104,13 @@ static QState deepSleepState(struct Tapdie *me)
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		post(&dashboard, DASH_ON_SIGNAL, 0);
-		return Q_TRAN(numbersState);
+		return Q_TRAN(aliveState);
 	}
 	return Q_SUPER(tapdieState);
 }
 
 
-static QState numbersState(struct Tapdie *me)
+static QState aliveState(struct Tapdie *me)
 {
 	char ch0;
 	static uint8_t cc = 0;

@@ -126,11 +126,11 @@ static QState aliveState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ' | 0x80);
 		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, '6' | 0x80);
-		QActive_arm((QActive*)me, 300); /* Ten seconds. */
+		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
 
 	case TAP_SIGNAL:
-		QActive_arm((QActive*)me, 300); /* Ten seconds. */
+		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		rn = (uint8_t) (random() % me->mode) + 1;
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ');

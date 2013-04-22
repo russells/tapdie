@@ -20,11 +20,11 @@ static QState tapdieInitial        (struct Tapdie *me);
 static QState tapdieState          (struct Tapdie *me);
 static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
-static QState numbersState         (struct Tapdie *me);
+static QState aliveState           (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
-static QEvent dashboardQueue[6];
+static QEvent dashboardQueue[9];
 
 QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 	{ (QActive *)0              , (QEvent *)0      , 0                        },
@@ -55,6 +55,7 @@ void tapdie_ctor(void)
 {
 	QActive_ctor((QActive *)(&tapdie), (QStateHandler)&tapdieInitial);
 	tapdie.counter = 0;
+	tapdie.mode = 6;
 }
 
 
@@ -103,73 +104,56 @@ static QState deepSleepState(struct Tapdie *me)
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		post(&dashboard, DASH_ON_SIGNAL, 0);
-		return Q_TRAN(numbersState);
+		return Q_TRAN(aliveState);
 	}
 	return Q_SUPER(tapdieState);
 }
 
 
-static QState numbersState(struct Tapdie *me)
+static QState aliveState(struct Tapdie *me)
 {
-	char ch0;
-	static uint8_t cc = 0;
+	uint8_t rn;
 
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->digits[0] = 0;
 		me->digits[1] = 0;
 		me->counter = 0;
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 4 );
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
-		post(&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		cc ++;
-		if (cc & 0b1) {
-			post(&dashboard, DASH_START_FLASHING_SIGNAL, 0);
-		} else {
-			post(&dashboard, DASH_START_FADING_SIGNAL, 0);
-		}
-		post(me, NEXT_DIGIT_SIGNAL, 0);
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
+		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
+		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
+		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ' | 0x80);
+		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, '6' | 0x80);
+		QActive_arm((QActive*)me, 300); /* Ten seconds. */
 		return Q_HANDLED();
-	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 50) {
-			return Q_TRAN(deepSleepEntryState);
-		}
-		me->randomnumber = random() % 100;
-		me->digits[1] = me->randomnumber % 10 + '0';
-		if (me->randomnumber >= 10) {
-			me->digits[0] = me->randomnumber / 10 + '0';
-		} else {
-			me->digits[0] = '\0';
-		}
-		if (me->counter & 0b1) {
-			if (me->digits[0]) {
-				ch0 = me->digits[0] | 0x80;
-			} else {
-				ch0 = 0;
-			}
-		} else {
-			ch0 = me->digits[0];
-		}
-		/* Checking the remaining space in the queue once then posting
-		   the three events, instead of checking three tmes with the
-		   post() macro, combined with posting here rather than in each
-		   branch of the if-else code above, saves over 200 bytes of
-		   program memory. */
-		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 3 );
-		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
-		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-		//QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_arm((QActive*)me, 7);
-		me->counter ++;
+
+	case TAP_SIGNAL:
+		QActive_arm((QActive*)me, 300); /* Ten seconds. */
+		rn = (uint8_t) (random() % me->mode) + 1;
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
+		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ');
+		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, rn+'0');
+		QActive_post((QActive*)&dashboard, DASH_START_FADING_SIGNAL, 0);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
-		post(me, NEXT_DIGIT_SIGNAL, 0);
-		return Q_HANDLED();
-	case TAP_SIGNAL:
-		return Q_TRAN(deepSleepState);
+		return Q_TRAN(deepSleepEntryState);
 	case Q_EXIT_SIG:
 		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);
 }
+
+
+/*
+  FIXME stuff to think about.
+
+  - The first tap wakes us up and we display the current mode.  What happens
+  with the next tap?  If it's very close to the wakeup tap, do we use that as
+  a mode change, or a roll?
+
+  - Do we need waiting states all over the place to catch the very close
+    together taps?
+
+*/

@@ -10,8 +10,8 @@ enum TapdieSignals {
 	 * running.
 	 */
 	WATCHDOG_SIGNAL = Q_USER_SIG,
-	TAP_SIGNAL,
-	NEXT_DIGIT_SIGNAL,
+	TAP_SIGNAL,		/** Comes with a counter that tells us how long
+				    since the last tap. */
 	DASH_OFF_SIGNAL,
 	DASH_ON_SIGNAL,
 	DASH_LCHAR_SIGNAL,
@@ -40,6 +40,7 @@ struct Tapdie {
 	char digits[2];
 	uint8_t randomnumber;
 	uint8_t counter;
+	uint8_t mode;
 };
 
 

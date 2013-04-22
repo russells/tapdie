@@ -10,8 +10,18 @@ enum TapdieSignals {
 	 * running.
 	 */
 	WATCHDOG_SIGNAL = Q_USER_SIG,
-	TAP_SIGNAL,
-	NEXT_DIGIT_SIGNAL,
+	TAP_SIGNAL,		/** Comes with a counter that tells us how long
+				    since the last tap. */
+	DASH_OFF_SIGNAL,
+	DASH_ON_SIGNAL,
+	DASH_LCHAR_SIGNAL,
+	DASH_RCHAR_SIGNAL,
+	DASH_BRIGHTNESS_SIGNAL,
+	DASH_MAX_BRIGHTNESS_SIGNAL,
+	DASH_MIN_BRIGHTNESS_SIGNAL,
+	DASH_START_FADING_SIGNAL,
+	DASH_START_FLASHING_SIGNAL,
+	DASH_STEADY_SIGNAL,
 	MAX_PUB_SIG,
 	MAX_SIG,
 };
@@ -30,6 +40,7 @@ struct Tapdie {
 	char digits[2];
 	uint8_t randomnumber;
 	uint8_t counter;
+	uint8_t mode;
 };
 
 
@@ -45,12 +56,12 @@ extern struct Tapdie tapdie;
  * know which state machine's queue is full.  If this check is done in user
  * code instead of library code we can tell them apart.
  */
-#define post(o, sig)							\
+#define post(o, sig, par)						\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_post(_me, sig);					\
+		QActive_post(_me, sig, par);				\
 	} while (0)
 
 /**
@@ -58,12 +69,12 @@ extern struct Tapdie tapdie;
  *
  * @see post()
  */
-#define postISR(o, sig)							\
+#define postISR(o, sig, par)						\
 	do {								\
 		QActive *_me = (QActive *)(o);				\
 		QActiveCB const Q_ROM *ao = &QF_active[_me->prio];	\
 		Q_ASSERT(_me->nUsed < Q_ROM_BYTE(ao->end));		\
-		QActive_postISR(_me, sig);				\
+		QActive_postISR(_me, sig, par);				\
 	} while (0)
 
 /**
@@ -74,6 +85,15 @@ extern struct Tapdie tapdie;
 static inline uint8_t nEventsUsed(QActive *o)
 {
 	return o->nUsed;
+}
+
+/**
+ * Find out how many more events can fit in the queue.
+ */
+static inline uint8_t nEventsFree(QActive *o)
+{
+	QActiveCB const Q_ROM *ao = &QF_active[o->prio];
+	return Q_ROM_BYTE(ao->end) - o->nUsed;
 }
 
 #endif

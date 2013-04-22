@@ -329,7 +329,7 @@ void BSP_do_reset(void)
  */
 SIGNAL(TIM0_OVF_vect)
 {
-	static uint8_t counter = 0;
+	static uint8_t interrupt_counter = 0;
 	static uint8_t qf_tick_counter = 0;
 	static uint8_t dnum;
 	static uint8_t segmentmask = 0b1;
@@ -355,11 +355,11 @@ SIGNAL(TIM0_OVF_vect)
 	   segments on two displays, so the flashing rate on each is
 	   976/16==61Hz.  Each segment will actually flash four times each time
 	   it is displayed, before we move on to the next segment. */
-	if (counter) {
-		counter >>= 1;
+	if (interrupt_counter) {
+		interrupt_counter >>= 1;
 		return;
 	} else {
-		counter = 0b100;
+		interrupt_counter = 0b100;
 	}
 
 	CB(DDRA, 7);		/* Clear before set so we don't run both. */

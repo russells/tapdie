@@ -52,7 +52,7 @@ void wdt_init(void)
 static void start_watchdog(void)
 {
 	wdt_reset();
-	wdt_enable(WDTO_30MS);
+	wdt_enable(WDTO_60MS);
 	SB(WDTCSR, WDIE);
 }
 
@@ -65,12 +65,8 @@ void BSP_watchdog(void)
 
 SIGNAL(WDT_vect)
 {
-	Q_ASSERT( time_counter <= TIME_COUNTER_MAX );
-	if (time_counter < TIME_COUNTER_MAX) {
-		time_counter ++;
-	}
 	postISR(&tapdie, WATCHDOG_SIGNAL, 0);
-	QF_tick();
+	/* QF_tick() is now called from the timer interrupt. */
 }
 
 
@@ -334,10 +330,24 @@ void BSP_do_reset(void)
 SIGNAL(TIM0_OVF_vect)
 {
 	static uint8_t counter = 0;
+	static uint8_t qf_tick_counter = 0;
 	static uint8_t dnum;
 	static uint8_t segmentmask = 0b1;
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
+
+
+	/* Only count timer or call QF_tick every so often. */
+	if (!qf_tick_counter) {
+		Q_ASSERT( time_counter <= TIME_COUNTER_MAX );
+		if (time_counter < TIME_COUNTER_MAX) {
+			time_counter ++;
+		}
+		QF_tick();
+		qf_tick_counter = 100;
+	} else {
+		qf_tick_counter --;
+	}
 
 	/* This makes us exit the ISR early 3 of 4 times.  CLKio is 1e6, so the
 	   interrupt rate is 1e6/256==3906Hz.  Running 1 of 4 of the interrupt

@@ -14,7 +14,6 @@ enum TapdieSignals {
 				    since the last tap. */
 	SET_MODE_SIGNAL,	/** The mode has been changed, so display
 				    that on the dashboard. */
-	NEXT_DIGIT_SIGNAL,
 	DASH_OFF_SIGNAL,
 	DASH_ON_SIGNAL,
 	DASH_LCHAR_SIGNAL,

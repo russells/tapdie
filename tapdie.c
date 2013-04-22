@@ -110,16 +110,16 @@ static QState deepSleepState(struct Tapdie *me)
 }
 
 
-static void rotate_mode(void)
+static void rotate_mode(struct Tapdie *me)
 {
-	switch (tapdie.mode) {
-	case D4: tapdie.mode = D6; break;
-	case D6: tapdie.mode = D8; break;
-	case D8: tapdie.mode = D10; break;
-	case D10: tapdie.mode = D12; break;
-	case D12: tapdie.mode = D20; break;
-	case D20: tapdie.mode = D100; break;
-	case D100: tapdie.mode = D4; break;
+	switch (me->mode) {
+	case D4: me->mode = D6; break;
+	case D6: me->mode = D8; break;
+	case D8: me->mode = D10; break;
+	case D10: me->mode = D12; break;
+	case D12: me->mode = D20; break;
+	case D20: me->mode = D100; break;
+	case D100: me->mode = D4; break;
 	default: Q_ASSERT(0); break;
 	}
 }
@@ -140,6 +140,7 @@ static QState aliveState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		post(me, SET_MODE_SIGNAL, 0);
+		QActive_arm((QActive*)me, 150); /* Five seconds. */
 		return Q_HANDLED();
 
 	case SET_MODE_SIGNAL:
@@ -167,43 +168,12 @@ static QState aliveState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		return Q_HANDLED();
 
-	case NEXT_DIGIT_SIGNAL:
-		if (me->counter >= 50) {
-			return Q_TRAN(deepSleepEntryState);
-		}
-		me->randomnumber = random() % 100;
-		me->digits[1] = me->randomnumber % 10 + '0';
-		if (me->randomnumber >= 10) {
-			me->digits[0] = me->randomnumber / 10 + '0';
-		} else {
-			me->digits[0] = '\0';
-		}
-		if (me->counter & 0b1) {
-			if (me->digits[0]) {
-				ch0 = me->digits[0] | 0x80;
-			} else {
-				ch0 = 0;
-			}
-		} else {
-			ch0 = me->digits[0];
-		}
-		/* Checking the remaining space in the queue once then posting
-		   the three events, instead of checking three tmes with the
-		   post() macro, combined with posting here rather than in each
-		   branch of the if-else code above, saves over 200 bytes of
-		   program memory. */
-		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 3 );
-		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
-		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, me->digits[1]);
-		//QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_arm((QActive*)me, 7);
-		me->counter ++;
+	case TAP_SIGNAL:
+		rotate_mode(me);
+		post(me, SET_MODE_SIGNAL, 0);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
-		post(me, NEXT_DIGIT_SIGNAL, 0);
-		return Q_HANDLED();
-	case TAP_SIGNAL:
-		return Q_TRAN(deepSleepState);
+		return Q_TRAN(deepSleepEntryState);
 	case Q_EXIT_SIG:
 		return Q_HANDLED();
 	}

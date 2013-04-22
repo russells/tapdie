@@ -105,7 +105,7 @@ static QState deepSleepState(struct Tapdie *me)
 		post(&dashboard, DASH_ON_SIGNAL, 0);
 		return Q_TRAN(numbersState);
 	}
-	return Q_SUPER(tapdieState);
+	return Q_SUPER(deepSleepEntryState);
 }
 
 

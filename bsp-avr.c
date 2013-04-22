@@ -237,7 +237,7 @@ SIGNAL(PCINT1_vect)
 
 	/* Only send a tap signal if we haven't sent one recently, or if we're
 	   just waking up now. */
-	if (0 == time_counter || time_counter > 7) {
+	if (0 == time_counter || time_counter > BSP_TICKS_PER_SECOND / 5) {
 		postISR(&tapdie, TAP_SIGNAL, time_counter);
 		/* We need to set time_counter to non-zero here, or in the case
 		   where we've just woken up, it may be zero again at the next
@@ -344,7 +344,7 @@ SIGNAL(TIM0_OVF_vect)
 			time_counter ++;
 		}
 		QF_tick();
-		qf_tick_counter = 100;
+		qf_tick_counter = 65; /* 3906/65 ~= 60 */
 	} else {
 		qf_tick_counter --;
 	}

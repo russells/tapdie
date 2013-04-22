@@ -13,4 +13,6 @@ watchdog inside the main loop.
 
 QF_tick() is only called on a subset of timer interrupts.
 
+We're also more strict with the use of BSP_TICKS_PER_SECOND.
+
 Signed-off-by: Russell Steicke <russells@adelie.cx>

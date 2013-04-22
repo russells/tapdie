@@ -162,9 +162,10 @@ static QState aliveState(struct Tapdie *me)
 		default:
 			ch0 = '9'; ch1 = '9'; Q_ASSERT(0); break;
 		}
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 4 );
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
 		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
+		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		return Q_HANDLED();
 

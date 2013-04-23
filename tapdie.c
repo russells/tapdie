@@ -22,8 +22,8 @@ static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
 static QState aliveState           (struct Tapdie *me);
 static QState rollingState         (struct Tapdie *me);
-static QState finalRollPauseState  (struct Tapdie *me);
-static QState finalRollWaitingState(struct Tapdie *me);
+static QState finalRollState       (struct Tapdie *me);
+static QState finalRollFadingState (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -141,6 +141,13 @@ static QState aliveState(struct Tapdie *me)
 }
 
 
+/**
+ * Get a random number and put that on the displays.
+ *
+ * We set the right display's decimal point to distinguish between 6 and 9, and
+ * between 2 and 5.  We don't do anything with the display's flashing or fading
+ * mode, or its brightness, leaving that up to the caller.
+ */
 static void generate_and_show_random(struct Tapdie *me)
 {
 	uint8_t rn;
@@ -183,7 +190,7 @@ static QState rollingState(struct Tapdie *me)
 			QActive_arm((QActive*)me, me->rollwait);
 			return Q_HANDLED();
 		} else {
-			return Q_TRAN(finalRollPauseState);
+			return Q_TRAN(finalRollState);
 		}
 	case TAP_SIGNAL:
 		return Q_TRAN(rollingState);
@@ -192,7 +199,7 @@ static QState rollingState(struct Tapdie *me)
 }
 
 
-static QState finalRollPauseState(struct Tapdie *me)
+static QState finalRollState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -204,13 +211,13 @@ static QState finalRollPauseState(struct Tapdie *me)
 	case TAP_SIGNAL:
 		return Q_TRAN(rollingState);
 	case Q_TIMEOUT_SIG:
-		return Q_TRAN(finalRollWaitingState);
+		return Q_TRAN(finalRollFadingState);
 	}
 	return Q_SUPER(aliveState);
 }
 
 
-static QState finalRollWaitingState(struct Tapdie *me)
+static QState finalRollFadingState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
@@ -220,7 +227,7 @@ static QState finalRollWaitingState(struct Tapdie *me)
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(deepSleepEntryState);
 	}
-	return Q_SUPER(finalRollPauseState);
+	return Q_SUPER(finalRollState);
 }
 
 /*

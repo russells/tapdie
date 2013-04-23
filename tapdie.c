@@ -119,7 +119,7 @@ static QState aliveState(struct Tapdie *me)
 	case Q_ENTRY_SIG:
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
 		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 50);
+		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
 		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
 		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ' | 0x80);
@@ -163,6 +163,9 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 	} else {
 		ch0 = rn / 10 + '0';
 		ch1 = rn % 10 + '0';
+	}
+	if (realrandom) {
+		ch1 |= 0x80;
 	}
 	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
 	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
@@ -209,7 +212,7 @@ static QState finalRollState(struct Tapdie *me)
 		   come here from rollingState() */
 		generate_and_show_random(me, 1);
 		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 50);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		return Q_TRAN(rollingState);

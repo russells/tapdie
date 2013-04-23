@@ -22,7 +22,8 @@ static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
 static QState aliveState           (struct Tapdie *me);
 static QState rollingState         (struct Tapdie *me);
-static QState finalRollState       (struct Tapdie *me);
+static QState finalRollPauseState  (struct Tapdie *me);
+static QState finalRollWaitingState(struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -182,7 +183,7 @@ static QState rollingState(struct Tapdie *me)
 			QActive_arm((QActive*)me, me->rollwait);
 			return Q_HANDLED();
 		} else {
-			return Q_TRAN(finalRollState);
+			return Q_TRAN(finalRollPauseState);
 		}
 	case TAP_SIGNAL:
 		return Q_TRAN(rollingState);
@@ -191,11 +192,36 @@ static QState rollingState(struct Tapdie *me)
 }
 
 
-static QState finalRollState(struct Tapdie *me)
+static QState finalRollPauseState(struct Tapdie *me)
 {
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		/* The dashboard is already in steady brightness, as we have
+		   come here from rollingState() */
+		generate_and_show_random(me);
+		QActive_arm((QActive*)me, 5*BSP_TICKS_PER_SECOND);
+		return Q_HANDLED();
+	case TAP_SIGNAL:
+		return Q_TRAN(rollingState);
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(finalRollWaitingState);
+	}
 	return Q_SUPER(aliveState);
 }
 
+
+static QState finalRollWaitingState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
+		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 1 );
+		QActive_post((QActive*)&dashboard, DASH_START_FADING_SIGNAL, 0);
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(deepSleepEntryState);
+	}
+	return Q_SUPER(finalRollPauseState);
+}
 
 /*
   FIXME stuff to think about.

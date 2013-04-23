@@ -37,10 +37,10 @@ void tapdie_ctor(void);
  */
 struct Tapdie {
 	QActive super;
+	char digits[2];
 	uint8_t randomnumber;
+	uint8_t counter;
 	uint8_t mode;
-	uint8_t rolls;
-	uint8_t rollwait;
 };
 
 

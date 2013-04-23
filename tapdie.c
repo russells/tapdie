@@ -57,7 +57,6 @@ int main(int argc, char **argv)
 void tapdie_ctor(void)
 {
 	QActive_ctor((QActive *)(&tapdie), (QStateHandler)&tapdieInitial);
-	tapdie.counter = 0;
 	tapdie.mode = 6;
 }
 
@@ -117,9 +116,6 @@ static QState aliveState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		me->digits[0] = 0;
-		me->digits[1] = 0;
-		me->counter = 0;
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
 		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
 		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);

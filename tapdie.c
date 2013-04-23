@@ -172,8 +172,8 @@ static QState rollingState(struct Tapdie *me)
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 2 );
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
 		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
-		me->rolls = 15;
-		me->rollwait = 6;
+		me->rolls = 20;
+		me->rollwait = 1;
 		QActive_arm((QActive*)me, me->rollwait);
 		generate_and_show_random(me);
 		return Q_HANDLED();
@@ -182,7 +182,7 @@ static QState rollingState(struct Tapdie *me)
 			/* Still rolling */
 			generate_and_show_random(me);
 			me->rolls --;
-			me->rollwait += 2;
+			me->rollwait ++;
 			QActive_arm((QActive*)me, me->rollwait);
 			return Q_HANDLED();
 		} else {

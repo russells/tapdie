@@ -41,6 +41,8 @@ struct Tapdie {
 	uint8_t randomnumber;
 	uint8_t counter;
 	uint8_t mode;
+	uint8_t rolls;
+	uint8_t rollwait;
 };
 
 

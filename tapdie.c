@@ -21,6 +21,8 @@ static QState tapdieState          (struct Tapdie *me);
 static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
 static QState aliveState           (struct Tapdie *me);
+static QState rollingState         (struct Tapdie *me);
+static QState finalRollState       (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -112,8 +114,6 @@ static QState deepSleepState(struct Tapdie *me)
 
 static QState aliveState(struct Tapdie *me)
 {
-	uint8_t rn;
-
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->digits[0] = 0;
@@ -130,19 +130,70 @@ static QState aliveState(struct Tapdie *me)
 		return Q_HANDLED();
 
 	case TAP_SIGNAL:
-		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
-		rn = (uint8_t) (random() % me->mode) + 1;
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
-		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ');
-		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, rn+'0');
-		QActive_post((QActive*)&dashboard, DASH_START_FADING_SIGNAL, 0);
-		return Q_HANDLED();
+		return Q_TRAN(rollingState);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(deepSleepEntryState);
 	case Q_EXIT_SIG:
 		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);
+}
+
+
+static void generate_and_show_random(struct Tapdie *me)
+{
+	uint8_t rn;
+	char ch0, ch1;
+
+	rn = (random() % me->mode) + 1;
+	if (rn < 10) {
+
+		ch0 = ' ';
+		ch1 = rn + '0';
+	} else {
+		ch0 = rn / 10 + '0';
+		ch1 = rn % 10 + '0';
+	}
+	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
+	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
+	me->randomnumber = rn;
+}
+
+
+static QState rollingState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 2 );
+		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
+		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		me->rolls = 15;
+		me->rollwait = 6;
+		QActive_arm((QActive*)me, me->rollwait);
+		generate_and_show_random(me);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		if (me->rolls) {
+			/* Still rolling */
+			generate_and_show_random(me);
+			me->rolls --;
+			me->rollwait += 2;
+			QActive_arm((QActive*)me, me->rollwait);
+			return Q_HANDLED();
+		} else {
+			return Q_TRAN(finalRollState);
+		}
+	case TAP_SIGNAL:
+		return Q_TRAN(rollingState);
+	}
+	return Q_SUPER(aliveState);
+}
+
+
+static QState finalRollState(struct Tapdie *me)
+{
+	return Q_SUPER(aliveState);
 }
 
 

@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 void tapdie_ctor(void)
 {
 	QActive_ctor((QActive *)(&tapdie), (QStateHandler)&tapdieInitial);
-	tapdie.mode = 6;
+	tapdie.mode = D6;
 }
 
 

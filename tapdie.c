@@ -185,12 +185,16 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 
 	/* If we get the same number as the last random roll, get another one
 	   so that the display will seem to change.  But if realrandom is set,
-	   use the first one. */
+	   use the first one since we want a real random roll and this test may
+	   bias the result.  Perhaps. */
 	do {
 		rn = (random() % me->mode) + 1;
 	} while ((!realrandom) && (rn == me->randomnumber));
-	if (rn < 10) {
-
+	/* We represent 100 with "00". */
+	if (rn == 100) {
+		ch0 = '0';
+		ch1 = '0';
+	} else if (rn < 10) {
 		ch0 = ' ';
 		ch1 = rn + '0';
 	} else {
@@ -212,12 +216,13 @@ static QState tappedState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
-		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
+		display_mode(me);
+		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		rotate_mode(me);
 		display_mode(me);
-		QActive_arm((QActive*)me,  BSP_TICKS_PER_SECOND / 3);
+		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(rollingState);
@@ -267,7 +272,7 @@ static QState finalRollState(struct Tapdie *me)
 		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
-		return Q_TRAN(rollingState);
+		return Q_TRAN(tappedState);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(finalRollFlashState);
 	}

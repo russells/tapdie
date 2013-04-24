@@ -22,6 +22,12 @@ enum TapdieSignals {
 	DASH_START_FADING_SIGNAL,
 	DASH_START_FLASHING_SIGNAL,
 	DASH_STEADY_SIGNAL,
+	DASH_AT_TOP_SIGNAL,	/** Sent by the dashboard when it is flashing
+				    or fading and has just got to the top
+				    brightness. */
+	DASH_AT_BOTTOM_SIGNAL,	/** Sent by the dashboard when it is flashing
+				    or fading and has just got to the bottom
+				    brightness. */
 	MAX_PUB_SIG,
 	MAX_SIG,
 };

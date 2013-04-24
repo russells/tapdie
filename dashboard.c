@@ -147,6 +147,7 @@ static QState fadingUpState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_TOP_SIGNAL, 0);
 			return Q_TRAN(fadingDownState);
 		}
 	case Q_EXIT_SIG:
@@ -175,6 +176,7 @@ static QState fadingDownState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_BOTTOM_SIGNAL, 0);
 			return Q_TRAN(fadingUpState);
 		}
 	}

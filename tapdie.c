@@ -21,6 +21,7 @@ static QState tapdieState          (struct Tapdie *me);
 static QState deepSleepState       (struct Tapdie *me);
 static QState deepSleepEntryState  (struct Tapdie *me);
 static QState aliveState           (struct Tapdie *me);
+static QState tappedState          (struct Tapdie *me);
 static QState rollingState         (struct Tapdie *me);
 static QState finalRollState       (struct Tapdie *me);
 static QState finalRollFlashState  (struct Tapdie *me);
@@ -113,6 +114,39 @@ static QState deepSleepState(struct Tapdie *me)
 }
 
 
+static void rotate_mode(struct Tapdie *me)
+{
+	switch (me->mode) {
+	case D4: me->mode = D6; break;
+	case D6: me->mode = D8; break;
+	case D8: me->mode = D10; break;
+	case D10: me->mode = D12; break;
+	case D12: me->mode = D20; break;
+	case D20: me->mode = D100; break;
+	case D100: me->mode = D4; break;
+	}
+}
+
+
+static void display_mode(struct Tapdie *me)
+{
+	char ch0 = '9', ch1 = '9';
+
+	switch (me->mode) {
+	case D4: ch0 = ' ' | 0x80; ch1 = '4' | 0x80; break;
+	case D6: ch0 = ' ' | 0x80; ch1 = '6' | 0x80; break;
+	case D8: ch0 = ' ' | 0x80; ch1 = '8' | 0x80; break;
+	case D10: ch0 = '1' | 0x80; ch1 = '0' | 0x80; break;
+	case D12: ch0 = '1' | 0x80; ch1 = '2' | 0x80; break;
+	case D20: ch0 = '2' | 0x80; ch1 = '0' | 0x80; break;
+	case D100: ch0 = '0' | 0x80; ch1 = '0' | 0x80; break;
+	}
+	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
+	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
+}
+
+
 static QState aliveState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
@@ -122,13 +156,12 @@ static QState aliveState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
 		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
 		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
-		QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ' ' | 0x80);
-		QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, '6' | 0x80);
+		display_mode(me);
 		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
 
 	case TAP_SIGNAL:
-		return Q_TRAN(rollingState);
+		return Q_TRAN(tappedState);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(deepSleepEntryState);
 	case Q_EXIT_SIG:
@@ -171,6 +204,25 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
 	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
 	me->randomnumber = rn;
+}
+
+
+static QState tappedState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
+		return Q_HANDLED();
+	case TAP_SIGNAL:
+		rotate_mode(me);
+		display_mode(me);
+		QActive_arm((QActive*)me,  BSP_TICKS_PER_SECOND / 3);
+		return Q_HANDLED();
+	case Q_TIMEOUT_SIG:
+		return Q_TRAN(rollingState);
+	}
+	return Q_SUPER(aliveState);
 }
 
 

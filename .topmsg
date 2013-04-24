@@ -1,4 +1,11 @@
 From: Russell Steicke <russells@adelie.cx>
 Subject: Taps close together allow us to change modes.
 
+After the die is awakened by a tap, a single tap will display the
+current mode (with both decimal points on so we can tell that this is
+the mode rather than a roll), then after 1.5 seconds it will begin a
+roll.  If there is a tap inside that first 1.5 seconds, it will change
+mode, display that mode, and wait a further 1.5 seconds.  If that 1.5
+seconds times out, it does a roll.
+
 Signed-off-by: Russell Steicke <russells@adelie.cx>

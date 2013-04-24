@@ -185,8 +185,7 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 
 	/* If we get the same number as the last random roll, get another one
 	   so that the display will seem to change.  But if realrandom is set,
-	   use the first one since we want a real random roll and this test may
-	   bias the result.  Perhaps. */
+	   use the first one. */
 	do {
 		rn = (random() % me->mode) + 1;
 	} while ((!realrandom) && (rn == me->randomnumber));

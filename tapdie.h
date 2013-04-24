@@ -28,22 +28,6 @@ enum TapdieSignals {
 
 
 /**
- * List of die modes.  We use the values in this enum as integers representing
- * the maximum roll when we generate a random roll, so the enum values are
- * important.
- */
-enum TapdieMode {
-	D4 = 4,
-	D6 = 6,
-	D8 = 8,
-	D10 = 10,
-	D12 = 12,
-	D20 = 20,
-	D100 = 100,
-};
-
-
-/**
  * Create the tapdie.
  */
 void tapdie_ctor(void);
@@ -54,7 +38,7 @@ void tapdie_ctor(void);
 struct Tapdie {
 	QActive super;
 	uint8_t randomnumber;
-	enum TapdieMode mode;
+	uint8_t mode;
 	uint8_t rolls;
 	uint8_t rollwait;
 };

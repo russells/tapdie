@@ -215,7 +215,6 @@ static QState tappedState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
-		rotate_mode(me);
 		display_mode(me);
 		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
 		return Q_HANDLED();

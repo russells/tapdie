@@ -269,13 +269,24 @@ static QState finalRollState(struct Tapdie *me)
 		/* The dashboard is already in steady brightness, as we have
 		   come here from rollingState() */
 		generate_and_show_random(me, 1);
-		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		me->rolls = 1;
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		return Q_TRAN(tappedState);
 	case Q_TIMEOUT_SIG:
-		return Q_TRAN(finalRollFlashState);
+		/* This is a little informal state machine.  It should be done
+		   with a new state, but that would take up a fair bit of
+		   program memory for little gain. */
+		if (me->rolls) {
+			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
+			me->rolls = 0;
+			QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
+			return Q_HANDLED();
+		} else {
+			return Q_TRAN(finalRollFlashState);
+		}
 	}
 	return Q_SUPER(aliveState);
 }

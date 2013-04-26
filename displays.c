@@ -10,10 +10,12 @@ struct SevenSegmentDisplay displays[2];
 
 #ifdef COMMON_ANODE
 #define DISPLAYSEGMENTS(x) ((~(x)) & 0x7f)
+#define BLANK 0x7f
 #endif
 
 #ifdef COMMON_CATHODE
 #define DISPLAYSEGMENTS(x) (x)
+#define BLANK 0x00
 #endif
 
 /**
@@ -34,7 +36,7 @@ static const Q_ROM uint8_t segmentmap[] = {
 static uint8_t get_segmentmap(char ch)
 {
 	if (' ' == ch || '\0' == ch) {
-		return 0b00000000;
+		return BLANK;
 	}
 	Q_ASSERT(ch >= '0');
 	Q_ASSERT(ch <= '9');

@@ -365,10 +365,10 @@ SIGNAL(TIM0_OVF_vect)
 	CB(DDRA, 7);		/* Clear before set so we don't run both. */
 	CB(DDRB, 2);
 
-	segmentmask <<= 1;
+	segmentmask >>= 1;
 	if (0 == segmentmask) {
 		dnum = !dnum;
-		segmentmask = 0b1;
+		segmentmask = 0x80;
 	}
 
 	if (0 == dnum) {
@@ -406,10 +406,16 @@ SIGNAL(TIM0_OVF_vect)
 #endif
 
 	if (0 == dnum) {
-		OCR0A = displayp->brightness;
+		if (segmentmask == 0x80) {
+			OCR0A = (displayp->brightness) >> 2;
+			OCR0A = displayp->brightness;
+		}
 		SB(DDRB, 2);
 	} else {
-		OCR0B = displayp->brightness;
+		if (segmentmask == 0x80) {
+			OCR0B = (displayp->brightness) >> 2;
+			OCR0B = displayp->brightness;
+		}
 		SB(DDRA, 7);
 	}
 }

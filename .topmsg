@@ -1,4 +1,6 @@
 From: Russell Steicke <russells@adelie.cx>
 Subject: Reduce the brightness of the decimal points.
 
+FIXME there is some weirdness with the decimal poiont.  If I make the segment mask go from 0x40 to 0x00 the display is very dim.  If it goes from 0x80 to 0x00, the display is as we have seen it.  But writing to PA7 should not matter.
+
 Signed-off-by: Russell Steicke <russells@adelie.cx>

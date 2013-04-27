@@ -70,6 +70,18 @@ static QState tapdieInitial(struct Tapdie *me)
 }
 
 
+static void seed_rng(uint8_t seed8)
+{
+	uint32_t rn;
+	uint8_t index;
+
+	rn = random();
+	index = random() & 0b11;
+	((uint8_t*)(&rn))[index] = seed8;
+	srandom(rn);
+}
+
+
 static QState tapdieState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
@@ -215,6 +227,7 @@ static QState tappedState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
+		seed_rng(BSP_get_random());
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
 		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);

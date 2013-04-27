@@ -57,5 +57,6 @@ void BSP_stop_everything(void);
 #define BSP_delay_ms(ms) _delay_ms(ms)
 #endif
 void BSP_do_reset(void);
+uint8_t BSP_get_random(void);
 
 #endif	/* bsp_h_INCLUDED */

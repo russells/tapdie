@@ -147,6 +147,7 @@ static QState fadingUpState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_HIGH_SIGNAL, 0);
 			return Q_TRAN(fadingDownState);
 		}
 	case Q_EXIT_SIG:
@@ -175,6 +176,7 @@ static QState fadingDownState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_LOW_SIGNAL, 0);
 			return Q_TRAN(fadingUpState);
 		}
 	}
@@ -201,6 +203,7 @@ static QState flashingHighState(struct Dashboard *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		set_brightness(me->max_brightness);
+		post(&tapdie, DASH_AT_HIGH_SIGNAL, 0);
 		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 3);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
@@ -220,6 +223,7 @@ static QState flashingLowState(struct Dashboard *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		set_brightness(me->min_brightness);
+		post(&tapdie, DASH_AT_LOW_SIGNAL, 0);
 		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 3);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:

@@ -26,6 +26,7 @@ static QState rollingState         (struct Tapdie *me);
 static QState finalRollState       (struct Tapdie *me);
 static QState finalRollFlashState  (struct Tapdie *me);
 static QState finalRollFadingState (struct Tapdie *me);
+static QState finalRollEndState    (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -312,10 +313,21 @@ static QState finalRollFadingState(struct Tapdie *me)
 		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
 	case Q_TIMEOUT_SIG:
-		return Q_TRAN(deepSleepEntryState);
+		return Q_TRAN(finalRollEndState);
 	}
 	return Q_SUPER(finalRollFlashState);
 }
+
+
+static QState finalRollEndState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case DASH_AT_LOW_SIGNAL:
+		return Q_TRAN(deepSleepEntryState);
+	}
+	return Q_SUPER(finalRollFadingState);
+}
+
 
 /*
   FIXME stuff to think about.

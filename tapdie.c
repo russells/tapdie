@@ -43,6 +43,10 @@ QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
 Q_ASSERT_COMPILE(QF_MAX_ACTIVE == Q_DIM(QF_active) - 1);
 
 
+#define MAX_BRIGHTNESS 250
+#define MIN_BRIGHTNESS 50
+
+
 int main(int argc, char **argv)
 {
  startmain:
@@ -166,9 +170,12 @@ static QState aliveState(struct Tapdie *me)
 	case Q_ENTRY_SIG:
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
 		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
-		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
+		QActive_post((QActive*)&dashboard,
+			     DASH_MIN_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
+		QActive_post((QActive*)&dashboard,
+			     DASH_MAX_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
+		QActive_post((QActive*)&dashboard,
+			     DASH_START_FLASHING_SIGNAL, 0);
 		display_mode(me);
 		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
@@ -243,7 +250,8 @@ static QState tappedState(struct Tapdie *me)
 	case Q_ENTRY_SIG:
 		seed_rng(BSP_get_random());
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
 		display_mode(me);
 		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
@@ -266,7 +274,8 @@ static QState rollingState(struct Tapdie *me)
 	case Q_ENTRY_SIG:
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 2 );
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		me->rolls = 20;
 		me->rollwait = 1;
 		QActive_arm((QActive*)me, me->rollwait);
@@ -297,7 +306,7 @@ static QState finalRollState(struct Tapdie *me)
 		/* The dashboard is already in steady brightness, as we have
 		   come here from rollingState() */
 		generate_and_show_random(me, 1);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		me->rolls = 1;
 		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
@@ -308,7 +317,8 @@ static QState finalRollState(struct Tapdie *me)
 		   with a new state, but that would take up a fair bit of
 		   program memory for little gain. */
 		if (me->rolls) {
-			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
+			post(&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
 			me->rolls = 0;
 			QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
 			return Q_HANDLED();
@@ -325,7 +335,7 @@ static QState finalRollFlashState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		QActive_arm((QActive*)me, 5 * BSP_TICKS_PER_SECOND);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(finalRollFadingState);
 	}

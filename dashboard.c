@@ -76,7 +76,7 @@ static QState onState(struct Dashboard *me)
 
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		me->brightness = 127;
+		//me->brightness = 127;
 		me->lchar = 0;
 		me->rchar = 0;
 		return Q_HANDLED();

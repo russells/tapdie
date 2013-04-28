@@ -184,6 +184,33 @@ static QState aliveState(struct Tapdie *me)
 }
 
 
+static void show_number(uint8_t number, uint8_t leftdp, uint8_t rightdp)
+{
+	char ch0, ch1;
+
+	/* We represent 100 with "00". */
+	if (number == 100) {
+		ch0 = '0';
+		ch1 = '0';
+	} else if (number < 10) {
+		ch0 = ' ';
+		ch1 = number + '0';
+	} else {
+		ch0 = number / 10 + '0';
+		ch1 = number % 10 + '0';
+	}
+	if (leftdp) {
+		ch0 |= 0x80;
+	}
+	if (rightdp) {
+		ch1 |= 0x80;
+	}
+	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
+	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
+}
+
+
 /**
  * Get a random number and put that on the displays.
  *
@@ -194,7 +221,6 @@ static QState aliveState(struct Tapdie *me)
 static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
-	char ch0, ch1;
 
 	/* If we get the same number as the last random roll, get another one
 	   so that the display will seem to change.  But if realrandom is set,
@@ -202,23 +228,11 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 	do {
 		rn = (random() % me->mode) + 1;
 	} while ((!realrandom) && (rn == me->randomnumber));
-	/* We represent 100 with "00". */
-	if (rn == 100) {
-		ch0 = '0';
-		ch1 = '0';
-	} else if (rn < 10) {
-		ch0 = ' ';
-		ch1 = rn + '0';
-	} else {
-		ch0 = rn / 10 + '0';
-		ch1 = rn % 10 + '0';
-	}
 	if (realrandom) {
-		ch1 |= 0x80;
+		show_number(rn, 0, 1);
+	} else {
+		show_number(rn, 0, 0);
 	}
-	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
-	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
-	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
 	me->randomnumber = rn;
 }
 
@@ -323,10 +337,27 @@ static QState finalRollFadingState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
+		me->rolls = 7;
+		//QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
+		return Q_HANDLED();
+	case DASH_AT_HIGH_SIGNAL:
+		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 1 );
+		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
+		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
-		return Q_TRAN(finalRollEndState);
+		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
+		me->rolls --;
+		if (! me->rolls) {
+			return Q_TRAN(finalRollEndState);
+		} else {
+			show_number(me->mode, 1, 1);
+			return Q_HANDLED();
+		}
+	case DASH_AT_LOW_SIGNAL:
+		show_number(me->randomnumber, 0, 1);
+		return Q_HANDLED();
 	}
 	return Q_SUPER(finalRollFlashState);
 }

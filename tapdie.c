@@ -125,7 +125,7 @@ static QState deepSleepState(struct Tapdie *me)
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		post(&dashboard, DASH_ON_SIGNAL, 0);
-		return Q_TRAN(aliveState);
+		return Q_TRAN(tappedState);
 	}
 	return Q_SUPER(tapdieState);
 }
@@ -168,23 +168,13 @@ static QState aliveState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		QActive_post((QActive*)&dashboard,
 			     DASH_MIN_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
 		QActive_post((QActive*)&dashboard,
 			     DASH_MAX_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
-		QActive_post((QActive*)&dashboard,
-			     DASH_START_FLASHING_SIGNAL, 0);
-		display_mode(me);
-		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
-		return Q_HANDLED();
-
-	case TAP_SIGNAL:
-		return Q_TRAN(tappedState);
-	case Q_TIMEOUT_SIG:
-		return Q_TRAN(deepSleepEntryState);
-	case Q_EXIT_SIG:
 		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);

@@ -20,7 +20,6 @@ enum TapdieSignals {
 	DASH_MAX_BRIGHTNESS_SIGNAL,
 	DASH_MIN_BRIGHTNESS_SIGNAL,
 	DASH_START_FADING_SIGNAL,
-	DASH_START_FLASHING_SIGNAL,
 	DASH_STEADY_SIGNAL,
 	DASH_AT_HIGH_SIGNAL,	/** The dash has just got to the high point of
 				    its flashing or fading cycle. */

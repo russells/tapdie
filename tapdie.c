@@ -338,8 +338,7 @@ static QState finalRollFadingState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		me->rolls = 7;
-		//QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
-		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
 	case DASH_AT_HIGH_SIGNAL:
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 1 );
@@ -366,6 +365,11 @@ static QState finalRollFadingState(struct Tapdie *me)
 static QState finalRollEndState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
+	case Q_ENTRY_SIG:
+		/* Set the bottom brightness to very low, then we wait until we
+		   fade down to that. */
+		post(&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 1);
+		return Q_HANDLED();
 	case DASH_AT_LOW_SIGNAL:
 		return Q_TRAN(deepSleepEntryState);
 	}

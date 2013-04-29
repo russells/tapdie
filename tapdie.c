@@ -150,13 +150,13 @@ static void display_mode(struct Tapdie *me)
 	char ch0 = '9', ch1 = '9';
 
 	switch (me->mode) {
-	case D4: ch0 = ' ' | 0x80; ch1 = '4' | 0x80; break;
-	case D6: ch0 = ' ' | 0x80; ch1 = '6' | 0x80; break;
-	case D8: ch0 = ' ' | 0x80; ch1 = '8' | 0x80; break;
-	case D10: ch0 = '1' | 0x80; ch1 = '0' | 0x80; break;
-	case D12: ch0 = '1' | 0x80; ch1 = '2' | 0x80; break;
-	case D20: ch0 = '2' | 0x80; ch1 = '0' | 0x80; break;
-	case D100: ch0 = '0' | 0x80; ch1 = '0' | 0x80; break;
+	case D4: ch0 = ' '; ch1 = '4'; break;
+	case D6: ch0 = ' '; ch1 = '6'; break;
+	case D8: ch0 = ' '; ch1 = '8'; break;
+	case D10: ch0 = '1'; ch1 = '0'; break;
+	case D12: ch0 = '1'; ch1 = '2'; break;
+	case D20: ch0 = '2'; ch1 = '0'; break;
+	case D100: ch0 = '0'; ch1 = '0'; break;
 	}
 	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
 	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
@@ -356,7 +356,7 @@ static QState finalRollFadingState(struct Tapdie *me)
 		if (! me->rolls) {
 			return Q_TRAN(finalRollEndState);
 		} else {
-			show_number(me->mode, 1, 1);
+			show_number(me->mode, 0, 0);
 			return Q_HANDLED();
 		}
 	case DASH_AT_LOW_SIGNAL:

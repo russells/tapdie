@@ -1,32 +1,38 @@
-A die that you tap on the table to "roll".
+A die that you tap on the table to roll.
 
 Features:
 
-- Generates a random number and shows that on the display.
+- Generates a random number and shows that on a display.
 
-- Can operate in several "die modes" - D4, D6, D8, D10, D12, D20 and D100.
+- Can operate in several die modes - D4, D6, D8, D10, D12, D20 and D100.
 
-- Automatically sleeps when not being used, in the lowest possible power mode
-  for the microcontroller.  Hence it does not need a switch.
+- Does not need a power switch, so it can be in a a sealed container.
 
-You can do several things with the die by tapping it on a hard surface.
+Operation:
 
 - If it's off, one tap turns it on.  It shows you the current maximum number
-  it's set for.  If it's set as a D4, it will show '4'.  D6 - '6'.  D10 - '10'.
-  D12 - '12'.  D20 - '20'.  D100 - '00'.  This flashes twice at full
-  brightness, then flashes slowly at reduced brightness for a few seconds.  For
-  both flashing periods, both the decimal points also flash so you know it's
-  telling you the die mode.
+  it's set for, one of ' 4', ' 6'. '10', '12', '20', or '00' (meaning 100).
 
-- If it's on a single tap makes it generate a new random throw, and show that.
-  Only the right most decimal point will show.  After a few seconds, the number
-  will fade from view, and flash slowly.  After a few more seconds the display
-  will turn off and the die will go to sleep.
+- After a short while the die will do a roll, showing a short series of
+  random numbers from 1 up to the current maximum, then it will stop on a
+  random number.
 
-- If it's on, a double tap will change the die mode, and show you the new one.
+- After the roll, the die will briefly display the maximum roll again, then
+  pause, then show the random number.  After another pause, it will start
+  fading in and out, showing the maximum while fading out, and the random
+  number while fading in.  After doing that for a few seconds, it will fade
+  out completely.
 
-- If it's on, a triple tap will enable or disable the speaker.  If enabled, the
-  speaker will beep once when the die is "rolled".
+- While displaying the random number, a single tap will start the roll
+  again.  More than one tap in quick succession will change the maximum
+  roll.
+
+- While doing the roll, another tap will restart and lengthen the roll, up
+  to a maximum length.
+
+- While displaying the random number, the right decimal point is on.  While
+  displaying either the maximum or the numbers during the roll process, the
+  decimal points are off so we can definitely tell the random number apart
+  from other numbers that are displayed.
 
 Russell Steicke <russells@adelie.cx>
-

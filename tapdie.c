@@ -312,12 +312,12 @@ static QState finalRollState(struct Tapdie *me)
 		   with a new state, but that would take up a fair bit of
 		   program memory for little gain. */
 		if (me->rolls) {
-			post(&dashboard,
-			     DASH_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
+			display_mode(me);
 			me->rolls = 0;
 			QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
 			return Q_HANDLED();
 		} else {
+			show_number(me->randomnumber, 0, 1);
 			return Q_TRAN(finalRollFlashState);
 		}
 	}
@@ -329,7 +329,7 @@ static QState finalRollFlashState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		QActive_arm((QActive*)me, 5 * BSP_TICKS_PER_SECOND);
+		QActive_arm((QActive*)me, 2 * BSP_TICKS_PER_SECOND);
 		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(finalRollFadingState);
@@ -380,16 +380,3 @@ static QState finalRollEndState(struct Tapdie *me)
 	}
 	return Q_SUPER(finalRollFadingState);
 }
-
-
-/*
-  FIXME stuff to think about.
-
-  - The first tap wakes us up and we display the current mode.  What happens
-  with the next tap?  If it's very close to the wakeup tap, do we use that as
-  a mode change, or a roll?
-
-  - Do we need waiting states all over the place to catch the very close
-    together taps?
-
-*/

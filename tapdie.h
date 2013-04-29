@@ -58,6 +58,7 @@ struct Tapdie {
 	QActive super;
 	uint8_t randomnumber;
 	enum TapdieMode mode;
+	uint8_t maxrolls;
 	uint8_t rolls;
 	uint8_t rollwait;
 };

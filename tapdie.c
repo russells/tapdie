@@ -244,14 +244,16 @@ static QState tappedState(struct Tapdie *me)
 			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
 		display_mode(me);
-		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
+		QActive_arm((QActive*)me, (2 * BSP_TICKS_PER_SECOND) / 3);
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		rotate_mode(me);
 		display_mode(me);
-		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
+		/* Wait longer if we have been tapped in this state. */
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
+		me->maxrolls = 10;
 		return Q_TRAN(rollingState);
 	}
 	return Q_SUPER(aliveState);
@@ -266,9 +268,9 @@ static QState rollingState(struct Tapdie *me)
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
 		QActive_post((QActive*)&dashboard,
 			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
-		me->rolls = 20;
-		me->rollwait = 1;
-		QActive_arm((QActive*)me, me->rollwait);
+		me->rolls = me->maxrolls;
+		me->rollwait = 2; /* Must be at least to, see /2 below. */
+		QActive_arm((QActive*)me, me->rollwait/2);
 		generate_and_show_random(me, 0);
 		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
@@ -277,12 +279,15 @@ static QState rollingState(struct Tapdie *me)
 			generate_and_show_random(me, 0);
 			me->rolls --;
 			me->rollwait ++;
-			QActive_arm((QActive*)me, me->rollwait);
+			QActive_arm((QActive*)me, me->rollwait/2);
 			return Q_HANDLED();
 		} else {
 			return Q_TRAN(finalRollState);
 		}
 	case TAP_SIGNAL:
+		if (me->maxrolls < 30) {
+			me->maxrolls += 5;
+		}
 		return Q_TRAN(rollingState);
 	}
 	return Q_SUPER(aliveState);

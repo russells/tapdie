@@ -380,16 +380,3 @@ static QState finalRollEndState(struct Tapdie *me)
 	}
 	return Q_SUPER(finalRollFadingState);
 }
-
-
-/*
-  FIXME stuff to think about.
-
-  - The first tap wakes us up and we display the current mode.  What happens
-  with the next tap?  If it's very close to the wakeup tap, do we use that as
-  a mode change, or a roll?
-
-  - Do we need waiting states all over the place to catch the very close
-    together taps?
-
-*/

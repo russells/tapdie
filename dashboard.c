@@ -14,9 +14,6 @@ static QState onState(struct Dashboard *me);
 static QState fadingState(struct Dashboard *me);
 static QState fadingUpState(struct Dashboard *me);
 static QState fadingDownState(struct Dashboard *me);
-static QState flashingState(struct Dashboard *me);
-static QState flashingHighState(struct Dashboard *me);
-static QState flashingLowState(struct Dashboard *me);
 
 
 struct Dashboard dashboard;
@@ -76,7 +73,7 @@ static QState onState(struct Dashboard *me)
 
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		me->brightness = 127;
+		//me->brightness = 127;
 		me->lchar = 0;
 		me->rchar = 0;
 		return Q_HANDLED();
@@ -106,8 +103,6 @@ static QState onState(struct Dashboard *me)
 		/* Start fading from the current brightness. */
 		me->fading_brightness = me->brightness;
 		return Q_TRAN(fadingDownState);
-	case DASH_START_FLASHING_SIGNAL:
-		return Q_TRAN(flashingHighState);
 	case DASH_STEADY_SIGNAL:
 		set_brightness(me->brightness);
 		return Q_TRAN(onState);
@@ -147,6 +142,7 @@ static QState fadingUpState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_HIGH_SIGNAL, 0);
 			return Q_TRAN(fadingDownState);
 		}
 	case Q_EXIT_SIG:
@@ -175,60 +171,9 @@ static QState fadingDownState(struct Dashboard *me)
 			QActive_arm((QActive*)me, 1);
 			return Q_HANDLED();
 		} else {
+			post(&tapdie, DASH_AT_LOW_SIGNAL, 0);
 			return Q_TRAN(fadingUpState);
 		}
 	}
 	return Q_SUPER(fadingState);
-}
-
-
-static QState flashingState(struct Dashboard *me)
-{
-	switch (Q_SIG(me)) {
-	case Q_ENTRY_SIG:
-		Q_ASSERT( me->max_brightness > me->min_brightness );
-		return Q_HANDLED();
-	case Q_EXIT_SIG:
-		set_brightness(me->brightness);
-		return Q_HANDLED();
-	}
-	return Q_SUPER(onState);
-}
-
-
-static QState flashingHighState(struct Dashboard *me)
-{
-	switch (Q_SIG(me)) {
-	case Q_ENTRY_SIG:
-		set_brightness(me->max_brightness);
-		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 3);
-		return Q_HANDLED();
-	case Q_TIMEOUT_SIG:
-		return Q_TRAN(flashingLowState);
-	case DASH_START_FADING_SIGNAL:
-		/* If we get told to start fading, do that from the current
-		   brightness. */
-		me->fading_brightness = me->max_brightness;
-		return Q_TRAN(fadingDownState);
-	}
-	return Q_SUPER(flashingState);
-}
-
-
-static QState flashingLowState(struct Dashboard *me)
-{
-	switch (Q_SIG(me)) {
-	case Q_ENTRY_SIG:
-		set_brightness(me->min_brightness);
-		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 3);
-		return Q_HANDLED();
-	case Q_TIMEOUT_SIG:
-		return Q_TRAN(flashingHighState);
-	case DASH_START_FADING_SIGNAL:
-		/* If we get told to start fading, do that from the current
-		   brightness. */
-		me->fading_brightness = me->min_brightness;
-		return Q_TRAN(fadingUpState);
-	}
-	return Q_SUPER(flashingState);
 }

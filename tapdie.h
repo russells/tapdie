@@ -20,10 +20,29 @@ enum TapdieSignals {
 	DASH_MAX_BRIGHTNESS_SIGNAL,
 	DASH_MIN_BRIGHTNESS_SIGNAL,
 	DASH_START_FADING_SIGNAL,
-	DASH_START_FLASHING_SIGNAL,
 	DASH_STEADY_SIGNAL,
+	DASH_AT_HIGH_SIGNAL,	/** The dash has just got to the high point of
+				    its flashing or fading cycle. */
+	DASH_AT_LOW_SIGNAL,	/** The dash has just got to the low point of
+				    its flashing or fading cycle. */
 	MAX_PUB_SIG,
 	MAX_SIG,
+};
+
+
+/**
+ * List of die modes.  We use the values in this enum as integers representing
+ * the maximum roll when we generate a random roll, so the enum values are
+ * important.
+ */
+enum TapdieMode {
+	D4 = 4,
+	D6 = 6,
+	D8 = 8,
+	D10 = 10,
+	D12 = 12,
+	D20 = 20,
+	D100 = 100,
 };
 
 
@@ -37,10 +56,11 @@ void tapdie_ctor(void);
  */
 struct Tapdie {
 	QActive super;
-	char digits[2];
 	uint8_t randomnumber;
-	uint8_t counter;
-	uint8_t mode;
+	enum TapdieMode mode;
+	uint8_t maxrolls;
+	uint8_t rolls;
+	uint8_t rollwait;
 };
 
 

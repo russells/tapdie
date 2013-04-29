@@ -13,12 +13,29 @@ Q_DEFINE_THIS_FILE;
 
 
 /**
- * We use this to count watchdog events, and then use that count to limit the
- * rate at which we send tap signals.
+ * We use this to count timer interrupts (effectively QF_tick() calls), and
+ * then use that count to limit the rate at which we send tap signals.
  */
 static uint8_t time_counter = 0;
 
 #define TIME_COUNTER_MAX 200
+
+/**
+ * Incremented by our timer interrupt.  We can use this to return a random
+ * uint8_t to the main loop, since the timer will run faster than a person can
+ * comprehend.
+ */
+static volatile uint8_t free_running_interrupt_counter;
+
+/**
+ * Get a random number for the pseudo RNG.  We return the free-running
+ * interrupt counter incremented by the timer interrupt.
+ */
+uint8_t BSP_get_random(void)
+{
+	return free_running_interrupt_counter;
+}
+
 
 void QF_onStartup(void)
 {
@@ -336,6 +353,7 @@ SIGNAL(TIM0_OVF_vect)
 	struct SevenSegmentDisplay *displayp;
 	uint8_t segments;
 
+	free_running_interrupt_counter ++;
 
 	/* Only count timer or call QF_tick every so often. */
 	if (!qf_tick_counter) {

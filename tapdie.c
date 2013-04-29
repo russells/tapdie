@@ -26,6 +26,7 @@ static QState rollingState         (struct Tapdie *me);
 static QState finalRollState       (struct Tapdie *me);
 static QState finalRollFlashState  (struct Tapdie *me);
 static QState finalRollFadingState (struct Tapdie *me);
+static QState finalRollEndState    (struct Tapdie *me);
 
 
 static QEvent tapdieQueue[4];
@@ -40,6 +41,10 @@ QActiveCB const Q_ROM Q_ROM_VAR QF_active[] = {
    tapdie.c:68: error: size of array ‘Q_assert_compile’ is negative
  */
 Q_ASSERT_COMPILE(QF_MAX_ACTIVE == Q_DIM(QF_active) - 1);
+
+
+#define MAX_BRIGHTNESS 250
+#define MIN_BRIGHTNESS 50
 
 
 int main(int argc, char **argv)
@@ -66,6 +71,18 @@ void tapdie_ctor(void)
 static QState tapdieInitial(struct Tapdie *me)
 {
 	return Q_TRAN(&deepSleepState);
+}
+
+
+static void seed_rng(uint8_t seed8)
+{
+	uint32_t rn;
+	uint8_t index;
+
+	rn = random();
+	index = random() & 0b11;
+	((uint8_t*)(&rn))[index] = seed8;
+	srandom(rn);
 }
 
 
@@ -108,7 +125,7 @@ static QState deepSleepState(struct Tapdie *me)
 		return Q_HANDLED();
 	case TAP_SIGNAL:
 		post(&dashboard, DASH_ON_SIGNAL, 0);
-		return Q_TRAN(aliveState);
+		return Q_TRAN(tappedState);
 	}
 	return Q_SUPER(tapdieState);
 }
@@ -151,23 +168,43 @@ static QState aliveState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 6 );
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 127);
-		QActive_post((QActive*)&dashboard, DASH_MIN_BRIGHTNESS_SIGNAL, 30);
-		QActive_post((QActive*)&dashboard, DASH_MAX_BRIGHTNESS_SIGNAL, 200);
-		QActive_post((QActive*)&dashboard, DASH_START_FLASHING_SIGNAL, 0);
-		display_mode(me);
-		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
-		return Q_HANDLED();
-
-	case TAP_SIGNAL:
-		return Q_TRAN(tappedState);
-	case Q_TIMEOUT_SIG:
-		return Q_TRAN(deepSleepEntryState);
-	case Q_EXIT_SIG:
+		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 3 );
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
+		QActive_post((QActive*)&dashboard,
+			     DASH_MIN_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
+		QActive_post((QActive*)&dashboard,
+			     DASH_MAX_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		return Q_HANDLED();
 	}
 	return Q_SUPER(tapdieState);
+}
+
+
+static void show_number(uint8_t number, uint8_t leftdp, uint8_t rightdp)
+{
+	char ch0, ch1;
+
+	/* We represent 100 with "00". */
+	if (number == 100) {
+		ch0 = '0';
+		ch1 = '0';
+	} else if (number < 10) {
+		ch0 = ' ';
+		ch1 = number + '0';
+	} else {
+		ch0 = number / 10 + '0';
+		ch1 = number % 10 + '0';
+	}
+	if (leftdp) {
+		ch0 |= 0x80;
+	}
+	if (rightdp) {
+		ch1 |= 0x80;
+	}
+	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
+	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
+	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
 }
 
 
@@ -181,7 +218,6 @@ static QState aliveState(struct Tapdie *me)
 static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
-	char ch0, ch1;
 
 	/* If we get the same number as the last random roll, get another one
 	   so that the display will seem to change.  But if realrandom is set,
@@ -189,23 +225,11 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 	do {
 		rn = (random() % me->mode) + 1;
 	} while ((!realrandom) && (rn == me->randomnumber));
-	/* We represent 100 with "00". */
-	if (rn == 100) {
-		ch0 = '0';
-		ch1 = '0';
-	} else if (rn < 10) {
-		ch0 = ' ';
-		ch1 = rn + '0';
-	} else {
-		ch0 = rn / 10 + '0';
-		ch1 = rn % 10 + '0';
-	}
 	if (realrandom) {
-		ch1 |= 0x80;
+		show_number(rn, 0, 1);
+	} else {
+		show_number(rn, 0, 0);
 	}
-	Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
-	QActive_post((QActive*)&dashboard, DASH_LCHAR_SIGNAL, ch0);
-	QActive_post((QActive*)&dashboard, DASH_RCHAR_SIGNAL, ch1);
 	me->randomnumber = rn;
 }
 
@@ -214,8 +238,10 @@ static QState tappedState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
+		seed_rng(BSP_get_random());
 		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 2 );
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
 		display_mode(me);
 		QActive_arm((QActive*)me, (3 * BSP_TICKS_PER_SECOND) / 2);
@@ -238,7 +264,8 @@ static QState rollingState(struct Tapdie *me)
 	case Q_ENTRY_SIG:
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 2 );
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
-		QActive_post((QActive*)&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		QActive_post((QActive*)&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		me->rolls = 20;
 		me->rollwait = 1;
 		QActive_arm((QActive*)me, me->rollwait);
@@ -269,7 +296,7 @@ static QState finalRollState(struct Tapdie *me)
 		/* The dashboard is already in steady brightness, as we have
 		   come here from rollingState() */
 		generate_and_show_random(me, 1);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 		me->rolls = 1;
 		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
 		return Q_HANDLED();
@@ -280,7 +307,8 @@ static QState finalRollState(struct Tapdie *me)
 		   with a new state, but that would take up a fair bit of
 		   program memory for little gain. */
 		if (me->rolls) {
-			post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 30);
+			post(&dashboard,
+			     DASH_BRIGHTNESS_SIGNAL, MIN_BRIGHTNESS);
 			me->rolls = 0;
 			QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
 			return Q_HANDLED();
@@ -297,7 +325,7 @@ static QState finalRollFlashState(struct Tapdie *me)
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
 		QActive_arm((QActive*)me, 5 * BSP_TICKS_PER_SECOND);
-		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, 200);
+		post(&dashboard, DASH_BRIGHTNESS_SIGNAL, MAX_BRIGHTNESS);
 	case Q_TIMEOUT_SIG:
 		return Q_TRAN(finalRollFadingState);
 	}
@@ -309,13 +337,41 @@ static QState finalRollFadingState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
-		QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
+		me->rolls = 7;
+		//QActive_arm((QActive*)me, 10 * BSP_TICKS_PER_SECOND);
 		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
+		return Q_HANDLED();
+	case DASH_AT_HIGH_SIGNAL:
+		Q_ASSERT( nEventsFree((QActive*)&dashboard) >= 1 );
+		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, 0);
+		QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND);
+		return Q_HANDLED();
 	case Q_TIMEOUT_SIG:
-		return Q_TRAN(deepSleepEntryState);
+		post(&dashboard, DASH_START_FADING_SIGNAL, 0);
+		me->rolls --;
+		if (! me->rolls) {
+			return Q_TRAN(finalRollEndState);
+		} else {
+			show_number(me->mode, 1, 1);
+			return Q_HANDLED();
+		}
+	case DASH_AT_LOW_SIGNAL:
+		show_number(me->randomnumber, 0, 1);
+		return Q_HANDLED();
 	}
 	return Q_SUPER(finalRollFlashState);
 }
+
+
+static QState finalRollEndState(struct Tapdie *me)
+{
+	switch (Q_SIG(me)) {
+	case DASH_AT_LOW_SIGNAL:
+		return Q_TRAN(deepSleepEntryState);
+	}
+	return Q_SUPER(finalRollFadingState);
+}
+
 
 /*
   FIXME stuff to think about.

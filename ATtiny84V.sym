@@ -103,4 +103,4 @@ description=Atmel ATtiny85/V microcontroller
 T 500 3700 8 10 0 0 0 0 1
 numslots=1
 T 1500 2500 9 10 1 0 0 0 1
-ATtiny85/V
+ATtiny84/V

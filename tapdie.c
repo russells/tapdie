@@ -218,13 +218,41 @@ static void show_number(uint8_t number, uint8_t leftdp, uint8_t rightdp)
 static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
+	uint8_t max = 255;
 
-	/* If we get the same number as the last random roll, get another one
-	   so that the display will seem to change.  But if realrandom is set,
-	   use the first one. */
-	do {
-		rn = (random() % me->mode) + 1;
-	} while ((!realrandom) && (rn == me->randomnumber));
+	switch (me->mode) {
+	case D4:  max = 255; break;
+	case D6:  max = 251; break;
+	case D8:  max = 255; break;
+	case D10: max = 249; break;
+	case D12: max = 251; break;
+	case D20: max = 239; break;
+	case D100:max = 199; break;
+	default: Q_ASSERT(0);
+	}
+
+	if (realrandom) {
+		/* We want a real random number, so do some gymnastics to try
+		   to overcome the apparent non-randomness in the low order
+		   bits.  We use all four bytes of the returned 32 bit number,
+		   and loop until we are in a range appropriate for our
+		   mode. */
+		do {
+			uint32_t rn32 = random();
+			uint8_t *rn8p = ((uint8_t*)(&rn32));
+			rn = rn8p[0] ^ rn8p[1] ^ rn8p[2] ^ rn8p[3];
+		} while (! (rn <= max));
+		rn = (rn % me->mode) + 1;
+	} else {
+		/* We don't necessarily want a well-generated random number, so
+		   don't do the same gymnastics.  But if we get the same number
+		   as the last random roll, get another one so that the display
+		   will seem to change. */
+		do {
+			rn = (random() % me->mode) + 1;
+		} while (rn == me->randomnumber);
+	}
+
 	if (realrandom) {
 		show_number(rn, 0, 1);
 	} else {

@@ -101,6 +101,11 @@ static QState deepSleepEntryState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
+		/* Don't stay in the Easter egg modes if we are going to
+		   sleep. */
+		if (me->mode == D1 || me->mode == D2) {
+			me->mode = D6;
+		}
 		/* Tell the dashboard to go off, then wait for that to be
 		   handled. */
 		post(&dashboard, DASH_OFF_SIGNAL, 0);
@@ -134,13 +139,22 @@ static QState deepSleepState(struct Tapdie *me)
 static void rotate_mode(struct Tapdie *me)
 {
 	switch (me->mode) {
+	case D1: me->mode = D2; break;
+	case D2: me->mode = D4; break;
 	case D4: me->mode = D6; break;
 	case D6: me->mode = D8; break;
 	case D8: me->mode = D10; break;
 	case D10: me->mode = D12; break;
 	case D12: me->mode = D20; break;
 	case D20: me->mode = D100; break;
-	case D100: me->mode = D4; break;
+	case D100:
+		me->wrapmodes ++;
+		if (me->wrapmodes >= 2) {
+			me->mode = D1;
+		} else {
+			me->mode = D4;
+		}
+		break;
 	}
 }
 
@@ -150,6 +164,8 @@ static void display_mode(struct Tapdie *me)
 	char ch0 = '9', ch1 = '9';
 
 	switch (me->mode) {
+	case D1: ch0 = ' '; ch1 = '1'; break;
+	case D2: ch0 = ' '; ch1 = '2'; break;
 	case D4: ch0 = ' '; ch1 = '4'; break;
 	case D6: ch0 = ' '; ch1 = '6'; break;
 	case D8: ch0 = ' '; ch1 = '8'; break;
@@ -219,12 +235,16 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
 
-	/* If we get the same number as the last random roll, get another one
-	   so that the display will seem to change.  But if realrandom is set,
-	   use the first one. */
-	do {
-		rn = (random() % me->mode) + 1;
-	} while ((!realrandom) && (rn == me->randomnumber));
+	if (D1 == me->mode) {
+		rn = 1;
+	} else {
+		/* If we get the same number as the last random roll, get
+		   another one so that the display will seem to change.  But if
+		   realrandom is set, use the first one. */
+		do {
+			rn = (random() % me->mode) + 1;
+		} while ((!realrandom) && (rn == me->randomnumber));
+	}
 	if (realrandom) {
 		show_number(rn, 0, 1);
 	} else {
@@ -264,6 +284,7 @@ static QState rollingState(struct Tapdie *me)
 {
 	switch (Q_SIG(me)) {
 	case Q_ENTRY_SIG:
+		me->wrapmodes = 0;
 		Q_ASSERT( nEventsFree((QActive*)(&dashboard)) >= 2 );
 		QActive_post((QActive*)&dashboard, DASH_STEADY_SIGNAL, ' ');
 		QActive_post((QActive*)&dashboard,

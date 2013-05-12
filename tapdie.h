@@ -36,6 +36,8 @@ enum TapdieSignals {
  * important.
  */
 enum TapdieMode {
+	D1 = 1,			/** D1 mode is an Easter egg. */
+	D2 = 2,			/** D2 mode is an Easter egg. */
 	D4 = 4,
 	D6 = 6,
 	D8 = 8,
@@ -61,6 +63,7 @@ struct Tapdie {
 	uint8_t maxrolls;
 	uint8_t rolls;
 	uint8_t rollwait;
+	uint8_t wrapmodes;
 };
 
 

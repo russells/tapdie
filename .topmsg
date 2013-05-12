@@ -1,0 +1,8 @@
+From: Russell Steicke <russells@adelie.cx>
+Subject: Add the D1 and D2 modes as Easter eggs.
+
+D1 and D2 modes can only be reached by wrapping around the mode
+setting from D100 back to the start, twice without stopping.  On the
+second wrap around, D1 and D2 modes will appear.
+
+Signed-off-by: Russell Steicke <russells@adelie.cx>

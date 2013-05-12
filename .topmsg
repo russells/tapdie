@@ -1,0 +1,7 @@
+From: Russell Steicke <russells@adelie.cx>
+Subject: Generate better random numbers.
+
+The RNG from the C library has less randomness in its low order bits,
+so work around that.
+
+Signed-off-by: Russell Steicke <russells@adelie.cx>

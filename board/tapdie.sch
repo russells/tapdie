@@ -305,7 +305,7 @@ refdes=CONN1
 T 43600 43650 5 10 0 0 0 0 1
 device=CONNECTOR_2
 T 43600 43850 5 10 0 0 0 0 1
-footprint=SIP2N
+footprint=CONNECTOR 1 2
 }
 C 43100 40800 1 0 0 battery-2.sym
 {
@@ -581,6 +581,8 @@ T 45800 43600 5 10 0 1 0 0 1
 device=HEADER8
 T 46400 43700 5 10 1 1 0 0 1
 refdes=J1
+T 45800 42400 5 10 0 0 0 0 1
+footprint=CONNECTOR 3 2
 }
 C 48000 46500 1 0 0 EMBEDDED7segment.sym
 [

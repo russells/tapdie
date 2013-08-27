@@ -1,0 +1,12 @@
+PCB.*.backup
+tapdie.pcb.bak
+tapdie-board.cmd
+tapdie-board.net
+tapdie.new.pcb
+tapdie.*.gbr
+tapdie.*.cnc
+
+\#*.sch\#
+*.sch~
+*.sym~
+

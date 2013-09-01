@@ -1,10 +1,15 @@
 PCB.*.backup
+*.pcb-
 tapdie.pcb.bak
 tapdie-board.cmd
 tapdie-board.net
+tapdie-board.pcb
 tapdie.new.pcb
 tapdie.*.gbr
 tapdie.*.cnc
+
+# Eagle format gerber files
+tapdie-gerber.*
 
 \#*.sch\#
 *.sch~

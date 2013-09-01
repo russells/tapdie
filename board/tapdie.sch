@@ -273,7 +273,7 @@ device=RESISTOR
 T 48600 45500 5 10 1 1 180 8 1
 refdes=R1
 T 48400 45200 5 10 0 0 90 0 1
-footprint=0805.fp
+footprint=0805_larger
 T 49000 45500 5 10 1 1 180 8 1
 value=220
 }
@@ -289,7 +289,7 @@ device=RESISTOR
 T 51700 45200 5 10 1 1 180 8 1
 refdes=R2
 T 51500 44900 5 10 0 0 90 0 1
-footprint=0805.fp
+footprint=0805_larger
 T 52100 45200 5 10 1 1 180 8 1
 value=220
 }
@@ -349,7 +349,7 @@ device=CAPACITOR
 T 43600 43300 5 10 1 1 0 0 1
 refdes=C1
 T 43300 43600 5 10 0 0 0 0 1
-footprint=0805.fp
+footprint=0805_larger
 T 43600 43000 5 10 1 1 0 2 1
 value=0.1
 }
@@ -376,7 +376,7 @@ device=RESISTOR
 T 47200 49300 5 10 1 1 0 0 1
 refdes=R3
 T 46900 49700 5 10 0 0 0 0 1
-footprint=0805.fp
+footprint=0805_larger
 T 47200 49100 5 10 1 1 0 0 1
 value=10k
 }
@@ -409,7 +409,7 @@ device=RESISTOR
 T 49000 42600 5 10 1 1 180 6 1
 refdes=R4
 T 48900 42200 5 10 0 0 180 0 1
-footprint=0805.fp
+footprint=0805_larger
 T 49000 42800 5 10 1 1 180 6 1
 value=2M2
 }

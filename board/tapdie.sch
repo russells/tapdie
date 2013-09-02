@@ -947,7 +947,7 @@ refdes=B1
 T 43400 43300 5 10 0 0 270 0 1
 symversion=0.1
 T 42100 43600 5 10 0 0 0 0 1
-footprint=S5056-pins.fp
+footprint=S5056_pins.fp
 }
 N 43500 43600 43500 44100 4
 N 43500 42700 43500 42000 4

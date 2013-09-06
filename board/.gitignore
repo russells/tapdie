@@ -1,9 +1,8 @@
 PCB.*.backup
 *.pcb-
 tapdie.pcb.bak
-tapdie-board.cmd
-tapdie-board.net
-tapdie-board.pcb
+tapdie.cmd
+tapdie.net
 tapdie.new.pcb
 tapdie.*.gbr
 tapdie.*.cnc

@@ -142,7 +142,8 @@ static void rotate_mode(struct Tapdie *me)
 	case D1: me->mode = D2; break;
 	case D2: me->mode = D4; break;
 	case D4: me->mode = D6; break;
-	case D6: me->mode = D8; break;
+	case D6: me->mode = D6_6; break;
+	case D6_6: me->mode = D8; break;
 	case D8: me->mode = D10; break;
 	case D10: me->mode = D12; break;
 	case D12: me->mode = D20; break;
@@ -168,6 +169,7 @@ static void display_mode(struct Tapdie *me)
 	case D2: ch0 = ' '; ch1 = '2'; break;
 	case D4: ch0 = ' '; ch1 = '4'; break;
 	case D6: ch0 = ' '; ch1 = '6'; break;
+	case D6_6: ch0 = '6' | 0x80; ch1 = '6'; break;
 	case D8: ch0 = ' '; ch1 = '8'; break;
 	case D10: ch0 = '1'; ch1 = '0'; break;
 	case D12: ch0 = '1'; ch1 = '2'; break;
@@ -230,10 +232,14 @@ static void show_number(uint8_t number, uint8_t leftdp, uint8_t rightdp)
  * We set the right display's decimal point to distinguish between 6 and 9, and
  * between 2 and 5.  We don't do anything with the display's flashing or fading
  * mode, or its brightness, leaving that up to the caller.
+ *
+ * If the mode is a double digit mode (currently only D6_6), we also set the
+ * left decimal point.
  */
 static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
+	uint8_t leftdp;
 
 	if (D1 == me->mode) {
 		rn = 1;
@@ -242,13 +248,27 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 		   another one so that the display will seem to change.  But if
 		   realrandom is set, use the first one. */
 		do {
-			rn = (random() % me->mode) + 1;
+			/* For the double 6 mode, generate two random numbers
+			   and combine them.  They get split again when
+			   displayed, but this is the simplest change for the
+			   only double mode. */
+			if (D6_6 == me->mode) {
+				rn = (random() % 6) + 1
+					+ (10 * ((random() % 6) + 1));
+			} else {
+				rn = (random() % me->mode) + 1;
+			}
 		} while ((!realrandom) && (rn == me->randomnumber));
 	}
-	if (realrandom) {
-		show_number(rn, 0, 1);
+	if (D6_6 == me->mode) {
+		leftdp = 1;
 	} else {
-		show_number(rn, 0, 0);
+		leftdp = 0;
+	}
+	if (realrandom) {
+		show_number(rn, leftdp, 1);
+	} else {
+		show_number(rn, leftdp, 0);
 	}
 	me->randomnumber = rn;
 }
@@ -338,7 +358,8 @@ static QState finalRollState(struct Tapdie *me)
 			QActive_arm((QActive*)me, BSP_TICKS_PER_SECOND / 2);
 			return Q_HANDLED();
 		} else {
-			show_number(me->randomnumber, 0, 1);
+			show_number(me->randomnumber,
+				    D6_6 == me->mode ? 1 : 0, 1);
 			return Q_TRAN(finalRollFlashState);
 		}
 	}
@@ -377,11 +398,12 @@ static QState finalRollFadingState(struct Tapdie *me)
 		if (! me->rolls) {
 			return Q_TRAN(finalRollEndState);
 		} else {
-			show_number(me->mode, 0, 0);
+			/* In the double mode, turn on the left dp. */
+			show_number(me->mode, D6_6 == me->mode ? 1 : 0, 0);
 			return Q_HANDLED();
 		}
 	case DASH_AT_LOW_SIGNAL:
-		show_number(me->randomnumber, 0, 1);
+		show_number(me->randomnumber, D6_6 == me->mode ? 1 : 0, 1);
 		return Q_HANDLED();
 	}
 	return Q_SUPER(finalRollFlashState);

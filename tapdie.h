@@ -40,6 +40,7 @@ enum TapdieMode {
 	D2 = 2,			/** D2 mode is an Easter egg. */
 	D4 = 4,
 	D6 = 6,
+	D6_6 = 66,
 	D8 = 8,
 	D10 = 10,
 	D12 = 12,

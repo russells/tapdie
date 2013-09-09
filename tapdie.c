@@ -222,6 +222,36 @@ static void show_number(uint8_t number, uint8_t leftdp, uint8_t rightdp)
 
 
 /**
+ * Generate a random number from 1 up to range.
+ *
+ * @param range the maximum number to generate
+ *
+ * @param maxmod used to ensure that the random number is evenly distributed
+ * over 1..range.  maxmod should be the maximum number less than or equal to
+ * 255, that is a multiple of range, minus 1.  Randomly generated numbers
+ * greater than this are discarded.  The exception is it can't take more than
+ * three tries to get a number below this.  If we get to the third try, just
+ * return that result, so we don't get stuck here too long.
+ */
+static uint8_t generate_random(uint8_t range, uint8_t maxmod)
+{
+	uint8_t rn;
+	uint32_t rn32;
+	uint8_t *rn8p;
+	uint8_t counter = 3;
+
+	do {
+		rn32 = (uint32_t) random();
+		rn8p = (uint8_t *)(&rn32);
+		rn = rn8p[0] ^ rn8p[1] ^ rn8p[2] ^ rn8p[3];
+		counter --;
+	} while ((rn > maxmod) && counter);
+
+	return (rn % range) + 1;
+}
+
+
+/**
  * Get a random number and put that on the displays.
  *
  * We set the right display's decimal point to distinguish between 6 and 9, and
@@ -235,6 +265,21 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 {
 	uint8_t rn;
 	uint8_t leftdp;
+	uint8_t max = 255;
+
+	switch (me->mode) {
+	case D1:
+	case D2:
+	case D4:
+	case D8:  max = 255; break;
+	case D10: max = 249; break;
+	case D6:
+	case D6_6:
+	case D12: max = 251; break;
+	case D20: max = 239; break;
+	case D100:max = 199; break;
+	default: Q_ASSERT(0);
+	}
 
 	if (D1 == me->mode) {
 		rn = 1;
@@ -248,10 +293,10 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 			   displayed, but this is the simplest change for the
 			   only double mode. */
 			if (D6_6 == me->mode) {
-				rn = (random() % 6) + 1
-					+ (10 * ((random() % 6) + 1));
+				rn = generate_random(6, max)
+					+ (10 * generate_random(6, max));
 			} else {
-				rn = (random() % me->mode) + 1;
+				rn = generate_random(me->mode, max);
 			}
 		} while ((!realrandom) && (rn == me->randomnumber));
 	}
@@ -260,6 +305,7 @@ static void generate_and_show_random(struct Tapdie *me, uint8_t realrandom)
 	} else {
 		leftdp = 0;
 	}
+
 	if (realrandom) {
 		show_number(rn, leftdp, 1);
 	} else {

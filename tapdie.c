@@ -88,11 +88,6 @@ static void seed_rng(uint8_t seed8)
 
 static QState tapdieState(struct Tapdie *me)
 {
-	switch (Q_SIG(me)) {
-	case WATCHDOG_SIGNAL:
-		BSP_watchdog();
-		return Q_HANDLED();
-	}
 	return Q_SUPER(&QHsm_top);
 }
 

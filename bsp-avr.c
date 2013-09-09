@@ -66,20 +66,6 @@ void wdt_init(void)
 }
 
 
-static void start_watchdog(void)
-{
-	wdt_reset();
-	wdt_enable(WDTO_60MS);
-	SB(WDTCSR, WDIE);
-}
-
-
-void BSP_watchdog(void)
-{
-	start_watchdog();
-}
-
-
 SIGNAL(WDT_vect)
 {
 	postISR(&tapdie, WATCHDOG_SIGNAL, 0);
@@ -188,7 +174,6 @@ void BSP_init(void)
 	TCCR0A = tccr0a_init;
 	TCCR0B = tccr0b_init;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
-	start_watchdog();
 
 	PORTA = porta_init;	/* Turn off all the LED outputs. */
 	DDRA  = ddra_init;
@@ -236,7 +221,6 @@ void BSP_deep_sleep(void)
 	CB(MCUCR, SE);          /* Disable sleep mode. */
 	CB(PRR, 2);		/* Timer 0 back on. */
 	TCNT0 = 0;		/* Start counting from the beginning again. */
-	start_watchdog();
 
 	DDRA = ddra_init;
 	DDRB = ddrb_init;
@@ -313,9 +297,8 @@ void BSP_stop_everything(void)
 
 
 /**
- * Force a chip reset.  We do this by enabling the watchdog, then disabling
- * interrupts and waiting.  But first, there's a long flash on one decimal
- * point segment.
+ * Force a chip reset.  We do this by jumping through the reset instruction at
+ * address 0.  But first, there's a long flash on one decimal point segment.
  */
 void BSP_do_reset(void)
 {
@@ -331,9 +314,8 @@ void BSP_do_reset(void)
 	_delay_ms(500);
 	DPSTOP();
 
-	wdt_enable(WDTO_15MS);
-	while (1)
-		;
+	void (*fn)(void) = 0;
+	(*fn)();
 }
 
 

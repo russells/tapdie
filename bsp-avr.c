@@ -62,7 +62,26 @@ void Q_onAssert(char const Q_ROM * const Q_ROM_VAR file, int line)
 void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
 void wdt_init(void)
 {
+	/* Save the value of MCUSR in a register.  We can't save it in a
+	   variable because this code is run before the data segment is
+	   initialised. */
+	GPIOR0 = MCUSR;
+	MCUSR = 0;
 	wdt_disable();
+}
+
+
+static void start_watchdog(void)
+{
+	wdt_reset();
+	wdt_enable(WDTO_60MS);
+	SB(WDTCSR, WDIE);
+}
+
+
+void BSP_watchdog(void)
+{
+	start_watchdog();
 }
 
 
@@ -101,7 +120,6 @@ void BSP_startmain(void)
 {
 	uint8_t prr;
 	uint8_t sreg;
-	uint8_t mcusr;
 
 	time_counter = 0;
 
@@ -117,19 +135,16 @@ void BSP_startmain(void)
 	DP(100,200);
 	DP(100,800);
 
-	/* Show the reset reason.  The bits of MCUSR are shifted out to the
-	   left, so the order is PORF, EXTRF, BORF, WDRF.  Two flashes means
-	   set, one flash means not set. */
-	mcusr = MCUSR;
-	MCUSR = 0;
-	for (uint8_t i=0; i<4; i++) {
-		if (mcusr & 0x1) {
+	/* Show the reset reason.  The bits of MCUSR are inspected starting
+	   from the right, so the order is PORF, EXTRF, BORF, WDRF.  Two
+	   flashes means set, one flash means not set. */
+	for (uint8_t i=0x1; i < 0x10; i <<= 1) {
+		if (GPIOR0 & i) {
 			DP(100,150);
 			DP(100,650);
 		} else {
 			DP(100,900);
 		}
-		mcusr >>= 1;
 	}
 
 	PRR = prr;
@@ -174,6 +189,7 @@ void BSP_init(void)
 	TCCR0A = tccr0a_init;
 	TCCR0B = tccr0b_init;
 	TIMSK0 =(1 << TOIE0);	 /* Overflow interrupt only. */
+	start_watchdog();
 
 	PORTA = porta_init;	/* Turn off all the LED outputs. */
 	DDRA  = ddra_init;
@@ -221,6 +237,7 @@ void BSP_deep_sleep(void)
 	CB(MCUCR, SE);          /* Disable sleep mode. */
 	CB(PRR, 2);		/* Timer 0 back on. */
 	TCNT0 = 0;		/* Start counting from the beginning again. */
+	start_watchdog();
 
 	DDRA = ddra_init;
 	DDRB = ddrb_init;
@@ -297,8 +314,9 @@ void BSP_stop_everything(void)
 
 
 /**
- * Force a chip reset.  We do this by jumping through the reset instruction at
- * address 0.  But first, there's a long flash on one decimal point segment.
+ * Force a chip reset.  We do this by enabling the watchdog, then disabling
+ * interrupts and waiting.  But first, there's a long flash on one decimal
+ * point segment.
  */
 void BSP_do_reset(void)
 {
@@ -314,8 +332,9 @@ void BSP_do_reset(void)
 	_delay_ms(500);
 	DPSTOP();
 
-	void (*fn)(void) = 0;
-	(*fn)();
+	wdt_enable(WDTO_15MS);
+	while (1)
+		;
 }
 
 
